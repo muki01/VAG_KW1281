@@ -1,3 +1,35 @@
+void send5baud(uint8_t data) {
+  uint8_t bits[10];
+  bits[0] = 0;  // start bit
+  bits[9] = 1;  // stop bit
+
+  // 7-bit data
+  for (int i = 0; i < 7; i++) {
+    bits[i + 1] = (data >> i) & 1;
+  }
+
+  // Odd parity calculation
+  uint8_t ones = 0;
+  for (int i = 1; i <= 7; i++) {
+    if (bits[i]) ones++;
+  }
+  bits[8] = (ones % 2 == 0) ? 1 : 0;  // parity bit
+
+  debugPrint("➡️ 5 Baud Init for Module 0x");
+  debugPrintHex(data);
+  debugPrint(": ");
+
+  // Set txPin as output
+  pinMode(K_line_TX, OUTPUT);
+
+  for (int i = 0; i < 10; i++) {
+    debugPrint(bits[i] ? "1" : "0");
+    digitalWrite(K_line_TX, bits[i] ? HIGH : LOW);
+    delay(200);
+  }
+
+  debugPrintln("");
+}
 
 int readByte7O1() {
   unsigned long t0 = millis();
