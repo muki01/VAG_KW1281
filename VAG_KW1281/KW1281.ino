@@ -74,59 +74,32 @@ void writeData(const uint8_t *dataArray, uint8_t length) {
   debugPrintln("");
 }
 
-int readKW1281() {
-  debugPrintln("Reading...");
+
+
+
+int readByte() {
   unsigned long startMillis = millis();  // Start time for waiting the first byte
-  int bytesRead = 0;
 
-  // Wait for data for the specified timeout
-  while (millis() - startMillis < DATA_TIMEOUT) {
-    if (K_Serial.available() > 0) {           // If the first byte is received
-      unsigned long lastByteTime = millis();  // Get the last received byte time
-      memset(resultBuffer, 0, sizeof(resultBuffer));
+  while (millis() - startMillis < DATA_TIMEOUT) {  // Wait for data for the specified timeout
+    if (K_Serial.available() > 0) {                // If the first byte is received
+      unsigned long lastByteTime = millis();       // Get the last received byte time
 
-      while (millis() - lastByteTime < 20) {  // Wait up to 60ms for new data
-        if (K_Serial.available() > 0) {       // If new data is available, read it
-          if (bytesRead >= sizeof(resultBuffer)) {
-            debugPrintln("\nBuffer is full. Stopping data reception.");
-            return bytesRead;
-          }
+      uint8_t receivedData = K_Serial.read();
+      debugPrint("✅ Received Data: ");
+      debugPrintHex(receivedData);
+      debugPrintln("");
 
-          debugPrint("Received Data: ");
-          resultBuffer[bytesRead] = K_Serial.read();
-          if (resultBuffer[bytesRead] < 0x10) debugPrint("0");
-          debugPrintHex(resultBuffer[bytesRead]);
-          debugPrintln();
-          bytesRead++;
-          lastByteTime = millis();  // Reset timer
-
-          if (bytesRead > 1 && resultBuffer[bytesRead - 1] == 0x03) break;
-
-          writeByte(resultBuffer[bytesRead - 1], true);
-
-
-
-          // If buffer is full, stop reading and print message
-        }
-      }
-
-      debugPrint("All Data: ");
-      for (int i = 0; i < bytesRead; i++) {
-        if (resultBuffer[i] < 0x10) debugPrint("0");
-        debugPrintHex(resultBuffer[i]);
-        debugPrint(" ");
-      }
-
-
-      // If no new data is received within 60ms, exit the loop
-      //printPacket(resultBuffer, bytesRead);
-      debugPrintln("\nData reception completed.");
-      debugPrintln();
-      return bytesRead;
+      return receivedData;
     }
   }
 
-  // If no data is received within 1 seconds
-  debugPrintln("Timeout: Not Received Data.");
-  return 0;
+  debugPrintln("❌ Timeout: Not Received Data.");  // If no data is received within 1 seconds
+  return -1;
+}
+
+
+
+
+    }
+  }
 }
