@@ -1,26 +1,3 @@
-bool initOBD2() {
-  // Request: C1 33 F1 81 66
-  // Response: 83 F1 11 C1 8F EF C4
-  if (connectionStatus) return true;
-
-  debugPrintln("Trying ISO14230_Fast");
-  setSerial(false, 10400);
-  digitalWrite(K_line_TX, LOW), delay(25);
-  digitalWrite(K_line_TX, HIGH), delay(25);
-
-  setSerial(true, 10400);
-  writeRawData(initEngine, sizeof(initEngine), 2);
-  if (readData()) {
-    if (resultBuffer[3] == 0xC1) {
-      debugPrintln("Your Protocol is ISO14230_Fast");
-      connectionStatus = true;
-      // leds[0] = CRGB::Green;
-      // FastLED.show();
-      return true;
-    }
-  }
-  return false;
-}
 
 int readByte7O1() {
   unsigned long t0 = millis();

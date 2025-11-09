@@ -39,6 +39,46 @@ void KW1281() {
 //     }
 //   }
 // }
+
+
+
+bool initOBD2() {
+  debugPrintln(F("Trying ISO9141 or KW1281"));
+  setSerial(false, 9600);
+  send5baud(0x01);
+
+  setSerial(true, 9600);
+  DATA_REQUEST_INTERVAL = 30;
+
+  if (readData()) {
+    if (resultBuffer[0] == 0x55) {
+      debugPrintln(F("➡️ Writing KW2 Reversed"));
+      K_Serial.write(~resultBuffer[2]);  //0xF7
+      delay(WRITE_DELAY);
+      clearEcho(1);
+
+      DATA_REQUEST_INTERVAL = 60;
+
+      if (readData()) {
+        if (resultBuffer[0]) {
+          connectionStatus = true;
+          debugPrintln(F("✅ Connection established with car"));
+          debugPrintln("");
+          debugPrintln("");
+          return true;
+        } else {
+          debugPrintln(F("❌ No Data Retrieved from Car"));
+        }
+      }
+    }
+  } else {
+    DATA_REQUEST_INTERVAL = 60;
+  }
+  return false;
+}
+
+
+
 void writeByte(uint8_t data) {
   debugPrint(F("➡️ Sending Byte: "));
   debugPrintHex(data);
