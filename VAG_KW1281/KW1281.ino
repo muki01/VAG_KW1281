@@ -30,20 +30,14 @@ void KW1281() {
   }
 }
 
-void writeByte(uint8_t data, bool inverted) {
-  uint8_t sendData;
-  if (inverted) {
-    sendData = ~data;
-  } else {
-    sendData = data;
-  }
 
-  debugPrint(F("Sending Byte: "));
-  if (sendData < 0x10) debugPrint("0");
-  debugPrintHex(sendData);
+
+void writeByte(uint8_t data) {
+  debugPrint(F("➡️ Sending Byte: "));
+  debugPrintHex(data);
   debugPrintln(F(""));
 
-  K_Serial.write(sendData);
+  K_Serial.write(data);
   delay(3);
 
   clearEcho(1);
