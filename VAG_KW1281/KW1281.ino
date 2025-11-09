@@ -1,37 +1,44 @@
 void KW1281() {
-  if (connectionStatus == true) {
-    if (readKW1281()) {
-      if (compareData(ACT, sizeof(ACT))) {
-        writeRawData(ACT_Response, sizeof(ACT_Response), 0);
-      }
-      // if (resultBuffer[2] == 0x09) {
-      //   writeRawDataKW1281(ACT, sizeof(ACT));
-      // }
-    }
-  } else {
-    int receivedByte = readByte7O1();
-    if (receivedByte >= 0) {
-      debugPrint(F("Received Data: "));
-      if (receivedByte < 0x10) debugPrint("0");
-      debugPrintHex(receivedByte);
-      debugPrintln();
-      if (receivedByte == 0x01 || receivedByte == 0x03) {
-        setSerial(true, 10400);
-        writeRawData(initKW1281, sizeof(initKW1281), false);
-        if (readData()) {
-          if (resultBuffer[0] == 0x75) {
-            debugPrintln(F("Connection Established !!"));
-            connectionStatus = true;
-            ledGreen();
-          }
-        }
-      }
+  if (initOBD2()) {
+    while (true) {
+      readaAllData();
+      writeData(ACT, sizeof(ACT));
     }
   }
 }
 
 
 
+// void KW1281_Simulator() {
+//   if (connectionStatus == true) {
+//     if (readKW1281()) {
+//       if (compareData(ACT, sizeof(ACT))) {
+//         writeRawData(ACT_Response, sizeof(ACT_Response), 0);
+//       }
+//       // if (resultBuffer[2] == 0x09) {
+//       //   writeRawDataKW1281(ACT, sizeof(ACT));
+//       // }
+//     }
+//   } else {
+//     int receivedByte = readByte7O1();
+//     if (receivedByte >= 0) {
+//       debugPrint(F("Received Data: "));
+//       debugPrintHex(receivedByte);
+//       debugPrintln();
+//       if (receivedByte == 0x01 || receivedByte == 0x03) {
+//         setSerial(true, 9600);
+//         writeRawData(initKW1281, sizeof(initKW1281), false);
+//         if (readData()) {
+//           if (resultBuffer[0] == 0x75) {
+//             debugPrintln(F("Connection Established !!"));
+//             connectionStatus = true;
+//             ledGreen();
+//           }
+//         }
+//       }
+//     }
+//   }
+// }
 void writeByte(uint8_t data) {
   debugPrint(F("➡️ Sending Byte: "));
   debugPrintHex(data);
