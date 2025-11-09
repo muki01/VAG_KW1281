@@ -1,3 +1,5 @@
+uint8_t messageCount = 0;
+
 void KW1281() {
   if (initOBD2()) {
     while (true) {
@@ -6,8 +8,6 @@ void KW1281() {
     }
   }
 }
-
-
 
 // void KW1281_Simulator() {
 //   if (connectionStatus == true) {
@@ -39,8 +39,6 @@ void KW1281() {
 //     }
 //   }
 // }
-
-
 
 bool initOBD2() {
   debugPrintln(F("Trying ISO9141 or KW1281"));
@@ -77,8 +75,6 @@ bool initOBD2() {
   return false;
 }
 
-
-
 void writeByte(uint8_t data) {
   debugPrint(F("➡️ Sending Byte: "));
   debugPrintHex(data);
@@ -89,8 +85,6 @@ void writeByte(uint8_t data) {
 
   clearEcho(1);
 }
-
-
 
 void writeData(const uint8_t *dataArray, uint8_t length) {
   uint8_t newLength = length + 2;  // New array size
@@ -120,9 +114,6 @@ void writeData(const uint8_t *dataArray, uint8_t length) {
   debugPrintln("");
   debugPrintln("");
 }
-
-
-
 
 int readByte() {
   unsigned long startMillis = millis();  // Start time for waiting the first byte
