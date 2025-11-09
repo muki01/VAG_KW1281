@@ -11,7 +11,8 @@
 #ifdef DEBUG_Serial
 #define debugPrint(x) Serial.print(x)
 #define debugPrintln(x) Serial.println(x)
-#define debugPrintHex(x) Serial.print(x, HEX)
+#define debugPrintHex(x) Serial.printf("%02lX", x);
+#define debugPrintlnHex(x) Serial.printf("%02lX\n", x);
 #else
 #define debugPrint(x) ((void)0)
 #define debugPrintln(x) ((void)0)

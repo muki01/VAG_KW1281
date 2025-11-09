@@ -59,7 +59,7 @@ int readByte7O1() {
 
   // Parity controll (Odd)
   if (ones % 2 == 0) {
-    Serial.println("Parity error!");
+    debugPrintln("Parity error!");
     return -2;
   }
 
@@ -92,7 +92,7 @@ int readData() {
       memset(resultBuffer, 0, sizeof(resultBuffer));
 
       // Inner loop: Read all data
-      debugPrint("Received Data: ");
+      debugPrint("✅ Received Data: ");
       while (millis() - lastByteTime < DATA_REQUEST_INTERVAL) {  // Wait up to 60ms for new data
         if (K_Serial.available() > 0) {                          // If new data is available, read it
           if (bytesRead >= sizeof(resultBuffer)) {
@@ -101,7 +101,6 @@ int readData() {
           }
 
           resultBuffer[bytesRead] = K_Serial.read();
-          if (resultBuffer[bytesRead] < 0x10) debugPrint("0");
           debugPrintHex(resultBuffer[bytesRead]);
           debugPrint(" ");
           bytesRead++;
@@ -112,29 +111,27 @@ int readData() {
       }
 
       // If no new data is received within 60ms, exit the loop
-      printPacket(resultBuffer, bytesRead);
-      debugPrintln("\nData reception completed.");
+      debugPrintln("\n✅ Data reception completed.");
       return bytesRead;
     }
   }
 
   // If no data is received within 1 seconds
-  debugPrintln("Timeout: Not Received Data.");
+  debugPrintln("❌ Timeout: Not Received Data.");
   return 0;
 }
 
 void clearEcho(int length) {
   int result = K_Serial.available();
   if (result > 0) {
-    Serial.print("Cleared Echo Data: ");
+    debugPrint("🗑️ Cleared Echo Data: ");
     for (int i = 0; i < length; i++) {
       byte receivedByte = K_Serial.read();
-      if (receivedByte < 0x10) debugPrint("0");
-      Serial.print(receivedByte, HEX);
-      Serial.print(" ");
+      debugPrintHex(receivedByte);
+      debugPrint(" ");
     }
-    Serial.println();
+    debugPrintln();
   } else {
-    Serial.println("Not Received Echo Data");
+    debugPrintln("❌ Not Received Echo Data");
   }
 }
