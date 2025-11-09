@@ -100,6 +100,32 @@ int readByte() {
 
 
 
+
+uint8_t readaAllData() {
+  debugPrintln("Reading Full Data...");
+  uint8_t receiveLength = 0;
+  while (true) {
+
+    int receivedByte = readByte();
+    if (receivedByte > -1) {
+      resultBuffer[receiveLength] = receivedByte;
+      receiveLength++;
+      if (receiveLength == 2) {
+        messageCount = receivedByte;
+      }
+      if (receivedByte == 0x03 && receiveLength > 2) {
+        debugPrint("✅ Message Count: ");
+        debugPrintHex(messageCount);
+        debugPrint("   Received All Data: ");
+        for (int i = 0; i < receiveLength; i++) {
+          debugPrintHex(resultBuffer[i]);
+          debugPrint(" ");
+        }
+        debugPrintln("");
+        debugPrintln("");
+        return receiveLength;
+      }
+      writeByte(~receivedByte);
     }
   }
 }
