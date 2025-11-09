@@ -43,23 +43,35 @@ void writeByte(uint8_t data) {
   clearEcho(1);
 }
 
-void writeRawDataKW1281(const uint8_t *dataArray, uint8_t length) {
-  debugPrint(F("Sending Raw Data: "));
-  for (size_t i = 0; i < length; i++) {
-    debugPrintHex(dataArray[i]);
-    debugPrint(F(" "));
-  }
-  debugPrintln(F(""));
 
-  for (size_t i = 0; i < length; i++) {
-    K_Serial.write(dataArray[i]);
-    delay(WRITE_DELAY);
-    readData();
-    // if (resultBuffer[1] == ~(dataArray[i])) {
-    //   debugPrint(F("Correct Inverted !"));
-    // }
+
+void writeData(const uint8_t *dataArray, uint8_t length) {
+  uint8_t newLength = length + 2;  // New array size
+  uint8_t newArray[newLength];
+
+  messageCount = messageCount + 1;
+
+  newArray[0] = length + 1;    // byte 0 = length + 1
+  newArray[1] = messageCount;  // byte 1 = messageCount
+  for (uint8_t i = 0; i < length; i++) {
+    newArray[i + 2] = dataArray[i];  // dataArray
   }
-  debugPrintln(F(""));
+
+  // Send
+  for (size_t i = 0; i < newLength; i++) {
+    writeByte(newArray[i]);
+
+    if (!readByte()) break;
+  }
+  debugPrint("✅ Message Count: ");
+  debugPrintHex(messageCount);
+  debugPrint("   Sended All Data: ");
+  for (int i = 0; i < newLength; i++) {
+    debugPrintHex(newArray[i]);
+    debugPrint(" ");
+  }
+  debugPrintln("");
+  debugPrintln("");
 }
 
 int readKW1281() {
