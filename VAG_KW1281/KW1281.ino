@@ -3,7 +3,7 @@ uint8_t messageCount = 0;
 void KW1281() {
   if (initOBD2()) {
     while (true) {
-      readaAllData();
+      readAllData();
       writeData(ACT, sizeof(ACT));
     }
   }
@@ -135,11 +135,7 @@ int readByte() {
   return -1;
 }
 
-
-
-
-
-uint8_t readaAllData() {
+uint8_t readAllData() {
   debugPrintln("Reading Full Data...");
   uint8_t receiveLength = 0;
   while (true) {
