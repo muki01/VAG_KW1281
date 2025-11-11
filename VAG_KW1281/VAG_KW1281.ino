@@ -44,5 +44,7 @@ void loop() {
     readRawData();
   } else if (MODE == 1) {
     KW1281();
+  } else if (MODE == 2) {
+    KW1281_Simulator();
   }
 }

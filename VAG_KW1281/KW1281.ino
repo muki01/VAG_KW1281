@@ -9,36 +9,33 @@ void KW1281() {
   }
 }
 
-// void KW1281_Simulator() {
-//   if (connectionStatus == true) {
-//     if (readKW1281()) {
-//       if (compareData(ACT, sizeof(ACT))) {
-//         writeRawData(ACT_Response, sizeof(ACT_Response), 0);
-//       }
-//       // if (resultBuffer[2] == 0x09) {
-//       //   writeRawDataKW1281(ACT, sizeof(ACT));
-//       // }
-//     }
-//   } else {
-//     int receivedByte = readByte7O1();
-//     if (receivedByte >= 0) {
-//       debugPrint(F("Received Data: "));
-//       debugPrintHex(receivedByte);
-//       debugPrintln();
-//       if (receivedByte == 0x01 || receivedByte == 0x03) {
-//         setSerial(true, 9600);
-//         writeRawData(initKW1281, sizeof(initKW1281), false);
-//         if (readData()) {
-//           if (resultBuffer[0] == 0x75) {
-//             debugPrintln(F("Connection Established !!"));
-//             connectionStatus = true;
-//             ledGreen();
-//           }
-//         }
-//       }
-//     }
-//   }
-// }
+void KW1281_Simulator() {
+  if (connectionStatus == true) {
+    if (readBlock()) {
+      if (resultBuffer[2] == 0x09) {
+        writeBlock(ACT_Response, sizeof(ACT_Response));
+      }
+    }
+  } else {
+    int receivedByte = read5baud();
+    if (receivedByte >= 0) {
+      debugPrint(F("Received Data: "));
+      debugPrintHex(receivedByte);
+      debugPrintln();
+      if (receivedByte == 0x01 || receivedByte == 0x03) {
+        setSerial(true, 9600);
+        writeRawData(initKW1281, sizeof(initKW1281), false);
+        if (readRawData()) {
+          if (resultBuffer[0] == 0x75) {
+            debugPrintln(F("Connection Established !!"));
+            connectionStatus = true;
+            ledGreen();
+          }
+        }
+      }
+    }
+  }
+}
 
 bool initOBD2() {
   debugPrintln(F("Trying ISO9141 or KW1281"));
