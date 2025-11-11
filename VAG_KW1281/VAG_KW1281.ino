@@ -40,8 +40,8 @@ void setup() {
 
 void loop() {
   if (MODE == 0) {
-    //readByte7O1();
-    readData();
+    //read5baud();
+    readRawData();
   } else if (MODE == 1) {
     KW1281();
   }

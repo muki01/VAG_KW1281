@@ -3,8 +3,8 @@ uint8_t messageCount = 0;
 void KW1281() {
   if (initOBD2()) {
     while (true) {
-      readAllData();
-      writeData(ACT, sizeof(ACT));
+      readBlock();
+      writeBlock(ACT, sizeof(ACT));
     }
   }
 }
@@ -48,7 +48,7 @@ bool initOBD2() {
   setSerial(true, 9600);
   DATA_REQUEST_INTERVAL = 30;
 
-  if (readData()) {
+  if (readRawData()) {
     if (resultBuffer[0] == 0x55) {
       debugPrintln(F("➡️ Writing KW2 Reversed"));
       K_Serial.write(~resultBuffer[2]);  //0xF7
@@ -57,7 +57,7 @@ bool initOBD2() {
 
       DATA_REQUEST_INTERVAL = 60;
 
-      if (readData()) {
+      if (readRawData()) {
         if (resultBuffer[0]) {
           connectionStatus = true;
           debugPrintln(F("✅ Connection established with car"));
@@ -86,7 +86,8 @@ void writeByte(uint8_t data) {
   clearEcho(1);
 }
 
-void writeData(const uint8_t *dataArray, uint8_t length) {
+void writeBlock(const uint8_t* dataArray, uint8_t length) {
+  debugPrintln("➡️ Sending Full Data...");
   uint8_t newLength = length + 2;  // New array size
   uint8_t newArray[newLength];
 
@@ -135,7 +136,7 @@ int readByte() {
   return -1;
 }
 
-uint8_t readAllData() {
+uint8_t readBlock() {
   debugPrintln("Reading Full Data...");
   uint8_t receiveLength = 0;
   while (true) {

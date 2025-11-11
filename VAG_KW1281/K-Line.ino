@@ -1,3 +1,4 @@
+// Format - 7O1
 void send5baud(uint8_t data) {
   uint8_t bits[10];
   bits[0] = 0;  // start bit
@@ -31,7 +32,8 @@ void send5baud(uint8_t data) {
   debugPrintln("");
 }
 
-int readByte7O1() {
+// Format - 7O1
+int read5baud() {
   unsigned long t0 = millis();
   while (digitalRead(K_line_RX) == HIGH) {
     if (millis() - t0 > 2000) return -1;
@@ -80,8 +82,8 @@ bool compareData(const uint8_t *dataArray, uint8_t length) {
   return true;
 }
 
-int readData() {
-  debugPrintln("Reading...");
+int readRawData() {
+  debugPrintln("Reading Raw Data...");
   unsigned long startMillis = millis();  // Start time for waiting the first byte
   int bytesRead = 0;
 
