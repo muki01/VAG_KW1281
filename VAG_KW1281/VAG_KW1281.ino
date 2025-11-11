@@ -24,7 +24,7 @@ int DATA_TIMEOUT = 1000;         // Time to wait before sending a new request af
 #define NUM_LEDS 1
 CRGB leds[NUM_LEDS];
 
-int MODE = 0;
+int MODE = 1;
 bool connectionStatus = false;
 
 byte resultBuffer[160];
@@ -35,7 +35,7 @@ void setup() {
   ledRed();
 
   Serial.begin(250000);
-  setSerial(true, 10400);
+  setSerial(true, 9600);
 }
 
 void loop() {
