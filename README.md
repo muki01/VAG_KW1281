@@ -6,18 +6,14 @@
 ![GitHub License](https://img.shields.io/github/license/muki01/VAG_KW1281?style=flat)
 ![GitHub last commit](https://img.shields.io/github/last-commit/muki01/VAG_KW1281)
 
-**Arduino & ESP32 Project for Communicating with Volkswagen Group ECUs via the KW1281 Protocol**
-
----
-
 ## 📝 Overview
 
-VAG_KW1281 is an open-source project designed to enable **Arduino** and **ESP32** microcontrollers to communicate with **Volkswagen Group (VW, Audi, Škoda, SEAT) ECUs** using the **KW1281 diagnostic protocol**.  
+VAG_KW1281 is an open-source project designed to enable Arduino, ESP32, and other microcontroller platforms to communicate with **Volkswagen Group (VW, Audi, Škoda, SEAT) ECUs** using the **KW1281 diagnostic protocol**.  
 This protocol, widely used in VAG vehicles from the 1990s to early 2000s, operates over the **K-line (ISO 9141-based)** physical layer, allowing access to diagnostic data, fault codes, and ECU information.
 
 This project focuses on:
 - ⚡ Enabling **low-level communication** with VAG ECUs.
-- 🛠 Providing a **hardware-friendly solution** for Arduino and ESP32 platforms.
+- 🛠 Providing a **hardware-friendly solution** for Arduino, ESP32, and other microcontroller platforms.
 - 📚 Offering an **educational platform** for understanding KW1281 and automotive diagnostics.
 
 You can also see my other car projects:
@@ -32,7 +28,7 @@ You can also see my other car projects:
 ## ✨ Features
 
 - 🔌 Communication with VAG ECUs via K-line using KW1281 protocol.
-- 🖥 Support for Arduino and ESP32 boards.
+- 🖥 Support for Arduino, ESP32, and other microcontroller platforms.
 - 📖 Example sketches for sending diagnostic requests and reading responses.
 - ⚙ Lightweight, hardware-oriented design suitable for microcontroller environments.
 - 🌐 Open-source and easily extendable for research, testing, and educational purposes.
@@ -41,7 +37,7 @@ You can also see my other car projects:
 
 ## 🛠 Hardware Requirements
 
-- Arduino board (Uno, Mega, Nano, etc.) **or** ESP32.  
+- Arduino board (Uno, Mega, Nano, etc.) or ESP32 or different microcontroller.  
 - K-line interface module or circuit capable of handling the 12V automotive K-line signal.  
 - Standard USB cable for programming and debugging.  
 - Optional: Level shifter or resistor network depending on ECU and board.
@@ -57,14 +53,9 @@ You can also see my other car projects:
 ## 🚀 Getting Started
 
 1. Clone the repository:
-
-    ```bash
-    git clone https://github.com/yourusername/vag-kw1281.git
-    cd vag-kw1281
-
 2. Open the provided example sketch in Arduino IDE.
 3. Connect the hardware according to the example circuit.
-4. Upload the sketch to your Arduino or ESP32 board.
+4. Upload the sketch to your board.
 5. Open the Serial Monitor (115200 baud recommended) to view ECU responses.
 
 ---
