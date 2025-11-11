@@ -82,6 +82,50 @@ bool compareData(const uint8_t *dataArray, uint8_t length) {
   return true;
 }
 
+void writeRawData(const uint8_t *dataArray, uint8_t length, uint8_t checksumType) {
+  uint8_t totalLength = length;  // default: no checksum
+  uint8_t checksum = 0;
+
+  switch (checksumType) {
+    case 0:
+      totalLength = length;
+      break;
+    case 1:
+      checksum = checksum8_XOR(dataArray, length);
+      totalLength = length + 1;
+      break;
+    case 2:
+      checksum = checksum8_Modulo256(dataArray, length);
+      totalLength = length + 1;
+      break;
+    case 3:
+      checksum = checksum8_TwosComplement(dataArray, length);
+      totalLength = length + 1;
+      break;
+    default:
+      totalLength = length;
+      break;
+  }
+
+  uint8_t sendData[totalLength];
+  memcpy(sendData, dataArray, length);
+  if (checksumType != 0) {
+    sendData[totalLength - 1] = checksum;
+  }
+
+  //printPacket(sendData, totalLength);
+
+  debugPrint(F("➡️ Sending Raw Data: "));
+  for (size_t i = 0; i < totalLength; i++) {
+    K_Serial.write(sendData[i]);
+    debugPrintHex(sendData[i]);
+    debugPrint(" ");
+    delay(WRITE_DELAY);
+  }
+  debugPrintln(F(""));
+  clearEcho(totalLength);
+}
+
 int readRawData() {
   debugPrintln("Reading Raw Data...");
   unsigned long startMillis = millis();  // Start time for waiting the first byte
