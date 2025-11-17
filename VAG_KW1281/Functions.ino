@@ -96,3 +96,17 @@ void ledRed() {
   leds[0] = CRGB::Red;
   FastLED.show();
 }
+
+bool compareData(const uint8_t *dataArray, uint8_t length) {
+  //debugPrintln("Comparing !");
+  for (size_t i = 0; i < length; i++) {
+    if (dataArray[i] != resultBuffer[i]) {
+      // debugPrint("Byte: ");
+      // debugPrint(i);
+      // debugPrintln(" Not same!");
+      return false;
+    }
+  }
+  //debugPrintln(" Same!");
+  return true;
+}

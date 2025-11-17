@@ -97,6 +97,22 @@ void ledRed() {
   FastLED.show();
 }
 
+
+bool compareData(const uint8_t *dataArray, uint8_t length) {
+  //debugPrintln("Comparing !");
+  for (size_t i = 0; i < length; i++) {
+    if (dataArray[i] != resultBuffer[i]) {
+      // debugPrint("Byte: ");
+      // debugPrint(i);
+      // debugPrintln(" Not same!");
+      return false;
+    }
+  }
+  //debugPrintln(" Same!");
+  return true;
+}
+
+
 uint16_t To16Bit(uint8_t msb, uint8_t lsb) {
   return ((uint16_t)msb << 8) | lsb;
 }
