@@ -2,8 +2,8 @@ uint8_t messageCount = 0;
 
 void KW1281() {
   if (initOBD2()) {
-    readBlock();
     ledGreen();
+    readECUInfo();
     while (true) {
       readBlock();
       writeBlock(ACT, sizeof(ACT));
@@ -706,7 +706,29 @@ void readDTC() {
   }
 }
 
+void readECUInfo() {
+  int byteLength = 0;
 
+  byteLength = readBlock();
+  ecu_data_1 = extractAscii(resultBuffer, byteLength);
+
+  writeBlock(ACT, 2);
+  byteLength = readBlock();
+  ecu_data_2 = extractAscii(resultBuffer, byteLength);
+
+  writeBlock(ACT, 2);
+  byteLength = readBlock();
+  ecu_data_3 = extractAscii(resultBuffer, byteLength);
+
+  writeBlock(ACT, 2);
+  byteLength = readBlock();
+  ecu_data_4 = extractAscii(resultBuffer, byteLength);
+
+  Serial.println("ECU Data 1: " + ecu_data_1);
+  Serial.println("ECU Data 2: " + ecu_data_2);
+  Serial.println("ECU Data 3: " + ecu_data_3);
+  Serial.println("ECU Data 4: " + ecu_data_4);
+}
 
 
 // ----------------------------------------- 5 Baud Functions ---------------------------------------
