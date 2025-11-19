@@ -1,4 +1,8 @@
 uint8_t messageCount = 0;
+String ecu_data_1 = "";
+String ecu_data_2 = "";
+String ecu_data_3 = "";
+String ecu_data_4 = "";
 
 void KW1281() {
   if (initOBD2()) {
