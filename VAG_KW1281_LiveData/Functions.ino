@@ -124,3 +124,18 @@ int8_t ToSigned8(uint8_t value) {
 int16_t ToSigned16(uint8_t msb, uint8_t lsb) {
   return (int16_t)((msb << 8) | lsb);
 }
+
+String extractAscii(const uint8_t* buffer, int length) {
+    // header = ilk 3 byte (genelde: length, blockCounter, command)
+    // terminator = son byte (0x03)
+    // ASCII veriler = 3. byte'tan 1 önceki byte'a kadar
+
+    String s = "";
+    for (int i = 3; i < length - 1; i++) {
+        uint8_t c = buffer[i];
+        if (c >= 0x20 && c <= 0x7E) {  // görünür ASCII filtreleme
+            s += (char)c;
+        }
+    }
+    return s;
+}

@@ -5,20 +5,8 @@ void KW1281() {
     ledGreen();
     readECUInfo();
     while (true) {
-      readBlock();
-      writeBlock(ACT, sizeof(ACT));
-      // readBlock();
-      // writeBlock(LiveData6, sizeof(LiveData1));
-      // readBlock();
-      // writeBlock(LiveData7, sizeof(LiveData1));
-      // readBlock();
-      // writeBlock(LiveData8, sizeof(LiveData1));
-      // readBlock();
-      // writeBlock(LiveData9, sizeof(LiveData1));
-      // readBlock();
-      // writeBlock(LiveData10, sizeof(LiveData1));
-      // readBlock();
-      // writeBlock(LiveData11, sizeof(LiveData1));
+      getPID(LiveData5);
+      readDTC();
     }
   }
 }
