@@ -684,6 +684,27 @@ void getPID(const uint8_t* dataArray) {
   }
 }
 
+void readDTC() {
+  writeBlock(readDTCs, 2);
+  readBlock();
+
+  uint8_t locations[] = { 3, 6, 9, 12, 15, 18 };
+
+  for (int i = 0; i < 6; i++) {
+    uint8_t a = resultBuffer[locations[i]];
+    uint8_t b = resultBuffer[locations[i] + 1];
+
+    if (a == 0x00 && b == 0x00) continue;
+
+    uint16_t dtcValue = ((uint16_t)a << 8) | b; // 16-bit DTC code
+
+    char dtcString[6];
+    sprintf(dtcString, "%05u", dtcValue);
+
+    Serial.print("DTC: ");
+    Serial.println(dtcString);
+  }
+}
 
 
 

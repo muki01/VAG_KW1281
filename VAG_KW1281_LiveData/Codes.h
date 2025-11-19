@@ -23,6 +23,12 @@ uint8_t LiveData19[3] = { 0x29, 0x13, 0x03 };
 uint8_t ECU_Data[2] = { 0x00, 0x03 };
 uint8_t Special[2] = { 0x12, 0x03 };
 
+uint8_t readDTCs[2] = { 0x07, 0x03 };
+uint8_t clearDTCs[2] = { 0x05, 0x03 };
+
+uint8_t endCommunication[2] = { 0x06, 0x03 };
+uint8_t controlParts[3] = { 0x04, 0x00, 0x03 };
+
 
 // 0x04 - Control Command
 // 0x05 - Clear DTCs Command
