@@ -2,6 +2,7 @@ uint8_t messageCount = 0;
 
 void KW1281() {
   if (initOBD2()) {
+    ledGreen();
     while (true) {
       readBlock();
       writeBlock(ACT, sizeof(ACT));
