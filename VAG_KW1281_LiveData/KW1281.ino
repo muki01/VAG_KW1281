@@ -180,10 +180,9 @@ int readByte() {
   unsigned long startMillis = millis();  // Start time for waiting the first byte
 
   while (millis() - startMillis < DATA_TIMEOUT) {  // Wait for data for the specified timeout
-    if (K_Serial.available() > 0) {                // If the first byte is received
-      unsigned long lastByteTime = millis();       // Get the last received byte time
-
+    if (K_Serial.available() > 0) {                // If data available
       uint8_t receivedData = K_Serial.read();
+      delay(1);
       //debugPrint("✅ Received Data: ");
       //debugPrintHex(receivedData);
       //debugPrintln("");
@@ -275,13 +274,13 @@ int readRawData() {
 void clearEcho(int length) {
   int result = K_Serial.available();
   if (result > 0) {
-    debugPrint("🗑️ Cleared Echo Data: ");
+    //debugPrint("🗑️ Cleared Echo Data: ");
     for (int i = 0; i < length; i++) {
       byte receivedByte = K_Serial.read();
-      debugPrintHex(receivedByte);
-      debugPrint(" ");
+      //debugPrintHex(receivedByte);
+      //debugPrint(" ");
     }
-    debugPrintln();
+    //debugPrintln();
   } else {
     debugPrintln("❌ Not Received Echo Data");
   }

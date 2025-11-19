@@ -166,10 +166,9 @@ int readByte() {
   unsigned long startMillis = millis();  // Start time for waiting the first byte
 
   while (millis() - startMillis < DATA_TIMEOUT) {  // Wait for data for the specified timeout
-    if (K_Serial.available() > 0) {                // If the first byte is received
-      unsigned long lastByteTime = millis();       // Get the last received byte time
-
+    if (K_Serial.available() > 0) {                // If data available
       uint8_t receivedData = K_Serial.read();
+      delay(1);
       debugPrint("✅ Received Data: ");
       debugPrintHex(receivedData);
       debugPrintln("");
