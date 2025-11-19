@@ -184,6 +184,7 @@ int readByte() {
 uint8_t readBlock() {
   debugPrintln("Reading Full Data...");
   uint8_t receiveLength = 0;
+  uint8_t messageLength = 0;
 
   memset(resultBuffer, 0, sizeof(resultBuffer));
   while (true) {
@@ -191,13 +192,16 @@ uint8_t readBlock() {
     int receivedByte = readByte();
     if (receivedByte > -1) {
       resultBuffer[receiveLength] = receivedByte;
+      if (receiveLength == 0) messageLength = receivedByte;
+      if (receiveLength == 1) messageCount = receivedByte;
+
       receiveLength++;
-      if (receiveLength == 2) {
-        messageCount = receivedByte;
-      }
-      if (receivedByte == 0x03 && receiveLength > 2) {
+
+      if (messageLength < receiveLength) {
         debugPrint("✅ Message Count: ");
         debugPrintHex(messageCount);
+        debugPrint("   Length: ");
+        debugPrintHex(messageLength);
         debugPrint("   Received All Data: ");
         for (int i = 0; i < receiveLength; i++) {
           debugPrintHex(resultBuffer[i]);
