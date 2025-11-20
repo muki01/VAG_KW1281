@@ -12,7 +12,6 @@ void setSerial(bool enabled, int BAUDRATE) {
     pinMode(K_line_RX, INPUT_PULLUP);
     pinMode(K_line_TX, OUTPUT);
     digitalWrite(K_line_TX, HIGH);
-    delay(3000);
   }
 }
 

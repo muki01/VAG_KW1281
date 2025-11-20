@@ -17,12 +17,21 @@ void KW1281() {
 
 void KW1281_Simulator() {
   if (connectionStatus == true) {
-    if (readBlock()) {
-      if (resultBuffer[2] == 0x09) {
-        writeBlock(ACT_Response, sizeof(ACT_Response));
+    writeBlock(ECU_ID_Response, sizeof(ECU_ID_Response));
+    while (connectionStatus == true) {
+      if (readBlock()) {
+        if (resultBuffer[2] == 0x09) writeBlock(ACT_Response, sizeof(ACT_Response));
+        if (resultBuffer[2] == 0x07) writeBlock(readDTC_Response, sizeof(readDTC_Response));
+        if (resultBuffer[2] == 0x05) writeBlock(readDTC_Response, sizeof(readDTC_Response));
+        if (resultBuffer[2] == 0x06) connectionStatus = false;
+        if (resultBuffer[2] == 0x29) {
+          if (resultBuffer[3] == 0x01) writeBlock(LiveData1_Response, sizeof(LiveData1_Response));
+          if (resultBuffer[3] == 0x05) writeBlock(LiveData5_Response, sizeof(LiveData5_Response));
+        }
       }
     }
   } else {
+    setSerial(false, 9600);
     int receivedByte = read5baud();
     if (receivedByte >= 0) {
       debugPrint(F("Received Data: "));
@@ -46,6 +55,7 @@ void KW1281_Simulator() {
 bool initOBD2() {
   debugPrintln(F("Trying ISO9141 or KW1281"));
   setSerial(false, 9600);
+  delay(3000);
   send5baud(0x01);
 
   setSerial(true, 9600);
