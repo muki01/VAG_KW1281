@@ -26,7 +26,16 @@ void KW1281_Simulator() {
         if (resultBuffer[2] == 0x06) connectionStatus = false;
         if (resultBuffer[2] == 0x29) {
           if (resultBuffer[3] == 0x01) writeBlock(LiveData1_Response, sizeof(LiveData1_Response));
+          if (resultBuffer[3] == 0x02) writeBlock(LiveData2_Response, sizeof(LiveData2_Response));
+          if (resultBuffer[3] == 0x03) writeBlock(LiveData3_Response, sizeof(LiveData3_Response));
+          if (resultBuffer[3] == 0x04) writeBlock(LiveData4_Response, sizeof(LiveData4_Response));
           if (resultBuffer[3] == 0x05) writeBlock(LiveData5_Response, sizeof(LiveData5_Response));
+          if (resultBuffer[3] == 0x06) writeBlock(LiveData6_Response, sizeof(LiveData6_Response));
+          if (resultBuffer[3] == 0x07) writeBlock(LiveData7_Response, sizeof(LiveData7_Response));
+          if (resultBuffer[3] == 0x08) writeBlock(LiveData8_Response, sizeof(LiveData8_Response));
+          if (resultBuffer[3] == 0x09) writeBlock(LiveData9_Response, sizeof(LiveData9_Response));
+          if (resultBuffer[3] == 0x10) writeBlock(LiveData10_Response, sizeof(LiveData10_Response));
+          if (resultBuffer[3] == 0x11) writeBlock(LiveData11_Response, sizeof(LiveData11_Response));
         }
       }
     }
