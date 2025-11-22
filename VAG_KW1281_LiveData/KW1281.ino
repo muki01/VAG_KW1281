@@ -17,10 +17,10 @@ void KW1281() {
 
 void KW1281_Simulator() {
   if (connectionStatus == true) {
-    writeBlock(ECU_ID_Response, sizeof(ECU_ID_Response));
+    writeBlock(ECU_Data1_Response, sizeof(ECU_Data1_Response));
     while (connectionStatus == true) {
       if (readBlock()) {
-        if (resultBuffer[2] == 0x09) writeBlock(ACT_Response, sizeof(ACT_Response));
+        if (resultBuffer[2] == 0x09) writeBlock(ACKNOWLEDGE_Response, sizeof(ACKNOWLEDGE_Response));
         if (resultBuffer[2] == 0x07) writeBlock(readDTC_Response, sizeof(readDTC_Response));
         if (resultBuffer[2] == 0x05) writeBlock(readDTC_Response, sizeof(readDTC_Response));
         if (resultBuffer[2] == 0x06) connectionStatus = false;
@@ -714,15 +714,15 @@ void readECUInfo() {
   byteLength = readBlock();
   ecu_data_1 = extractAscii(resultBuffer, byteLength);
 
-  writeBlock(ACT, 2);
+  writeBlock(ACKNOWLEDGE, 2);
   byteLength = readBlock();
   ecu_data_2 = extractAscii(resultBuffer, byteLength);
 
-  writeBlock(ACT, 2);
+  writeBlock(ACKNOWLEDGE, 2);
   byteLength = readBlock();
   ecu_data_3 = extractAscii(resultBuffer, byteLength);
 
-  writeBlock(ACT, 2);
+  writeBlock(ACKNOWLEDGE, 2);
   byteLength = readBlock();
   ecu_data_4 = extractAscii(resultBuffer, byteLength);
 

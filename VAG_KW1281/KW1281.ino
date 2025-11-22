@@ -5,17 +5,17 @@ void KW1281() {
     ledGreen();
     while (true) {
       readBlock();
-      writeBlock(ACT, sizeof(ACT));
+      writeBlock(ACKNOWLEDGE, sizeof(ACKNOWLEDGE));
     }
   }
 }
 
 void KW1281_Simulator() {
   if (connectionStatus == true) {
-    writeBlock(ECU_ID_Response, sizeof(ECU_ID_Response));
+    writeBlock(ECU_Data1_Response, sizeof(ECU_Data1_Response));
     while (connectionStatus == true) {
       if (readBlock()) {
-        if (resultBuffer[2] == 0x09) writeBlock(ACT_Response, sizeof(ACT_Response));
+        if (resultBuffer[2] == 0x09) writeBlock(ACKNOWLEDGE_Response, sizeof(ACKNOWLEDGE_Response));
         if (resultBuffer[2] == 0x07) writeBlock(readDTC_Response, sizeof(readDTC_Response));
         if (resultBuffer[2] == 0x05) writeBlock(readDTC_Response, sizeof(readDTC_Response));
         if (resultBuffer[2] == 0x06) connectionStatus = false;
