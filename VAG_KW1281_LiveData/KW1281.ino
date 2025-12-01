@@ -739,9 +739,15 @@ void readDTC() {
   }
 }
 
+void clearDTC() {
+  writeBlock(clearDTCs, 2);
+  int length = readBlock();
 
+  if (resultBuffer[2] == 0x09) {
+    Serial.print("DTC Cleared Successfully.");
   }
 }
+
 
 void readECUInfo() {
   int byteLength = 0;
