@@ -18,7 +18,7 @@ void setSerial(bool enabled, int BAUDRATE) {
 byte checksum8_XOR(const byte data[], int length) {
   byte checksum = 0;
   for (int i = 0; i < length; i++) {
-    checksum ^= data[i];  // XOR işlemi
+    checksum ^= data[i];  // XOR operation
   }
   return checksum;
 }
@@ -28,7 +28,7 @@ byte checksum8_Modulo256(const byte data[], int length) {
   for (int i = 0; i < length; i++) {
     sum += data[i];
   }
-  return (byte)(sum % 256);  // veya (byte)sum; çünkü uint8_t overflow da mod 256 etkisi verir
+  return (byte)(sum % 256);  // or (byte)sum; because byte automatically wraps around at 256
 }
 
 byte checksum8_TwosComplement(const byte data[], int length) {
@@ -125,16 +125,16 @@ int16_t ToSigned16(uint8_t msb, uint8_t lsb) {
 }
 
 String extractAscii(const uint8_t* buffer, int length) {
-    // header = ilk 3 byte (genelde: length, blockCounter, command)
-    // terminator = son byte (0x03)
-    // ASCII veriler = 3. byte'tan 1 önceki byte'a kadar
+  // header = first 3 byte (usually: length, blockCounter, command)
+  // terminator = last byte (0x03)
+  // ASCII data = from 3rd byte to one before the last byte
 
-    String s = "";
-    for (int i = 3; i < length - 1; i++) {
-        uint8_t c = buffer[i];
-        if (c >= 0x20 && c <= 0x7E) {  // görünür ASCII filtreleme
-            s += (char)c;
-        }
+  String s = "";
+  for (int i = 3; i < length - 1; i++) {
+    uint8_t c = buffer[i];
+    if (c >= 0x20 && c <= 0x7E) {  //  ASCII filtering
+      s += (char)c;
     }
-    return s;
+  }
+  return s;
 }
