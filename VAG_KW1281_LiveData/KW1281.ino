@@ -83,8 +83,8 @@ bool initOBD2() {
         if (resultBuffer[0]) {
           connectionStatus = true;
           debugPrintln(F("✅ Connection established with car"));
-          debugPrintln("");
-          debugPrintln("");
+          debugPrintln();
+          debugPrintln();
           return true;
         } else {
           debugPrintln(F("❌ No Data Retrieved from Car"));
@@ -100,9 +100,9 @@ bool initOBD2() {
 // ----------------------------------------- Write Functions ---------------------------------------
 
 void writeByte(uint8_t data) {
-  //debugPrint(F("➡️ Sending Byte: "));
-  //debugPrintHex(data);
-  //debugPrintln(F(""));
+  // debugPrint(F("➡️ Sending Byte: "));
+  // debugPrintHex(data);
+  // debugPrintln();
 
   K_Serial.write(data);
   delay(3);
@@ -111,7 +111,7 @@ void writeByte(uint8_t data) {
 }
 
 void writeBlock(const uint8_t* dataArray, uint8_t length) {
-  debugPrintln("➡️ Sending Full Data...");
+  debugPrintln(F("➡️ Sending Full Data..."));
   uint8_t newLength = length + 2;  // New array size
   uint8_t newArray[newLength];
 
@@ -129,15 +129,15 @@ void writeBlock(const uint8_t* dataArray, uint8_t length) {
 
     if (!readByte()) break;
   }
-  debugPrint("✅ Message Count: ");
+  debugPrint(F("✅ Message Count: "));
   debugPrintHex(messageCount);
-  debugPrint("   Sended All Data: ");
+  debugPrint(F("   Sended All Data: "));
   for (int i = 0; i < newLength; i++) {
     debugPrintHex(newArray[i]);
-    debugPrint(" ");
+    debugPrint(F(" "));
   }
-  debugPrintln("");
-  debugPrintln("");
+  debugPrintln();
+  debugPrintln();
 }
 
 void writeRawData(const uint8_t *dataArray, uint8_t length, uint8_t checksumType) {
@@ -177,10 +177,10 @@ void writeRawData(const uint8_t *dataArray, uint8_t length, uint8_t checksumType
   for (size_t i = 0; i < totalLength; i++) {
     K_Serial.write(sendData[i]);
     debugPrintHex(sendData[i]);
-    debugPrint(" ");
+    debugPrint(F(" "));
     delay(WRITE_DELAY);
   }
-  debugPrintln(F(""));
+  debugPrintln();
   clearEcho(totalLength);
 }
 
@@ -194,20 +194,20 @@ int readByte() {
     if (K_Serial.available() > 0) {                // If data available
       uint8_t receivedData = K_Serial.read();
       delay(1);
-      //debugPrint("✅ Received Data: ");
-      //debugPrintHex(receivedData);
-      //debugPrintln("");
+      // debugPrint(F("✅ Received Data: "));
+      // debugPrintHex(receivedData);
+      // debugPrintln();
 
       return receivedData;
     }
   }
 
-  debugPrintln("❌ Timeout: Not Received Data.");  // If no data is received within 1 seconds
+  debugPrintln(F("❌ Timeout: Not Received Data."));  // If no data is received within 1 seconds
   return -1;
 }
 
 uint8_t readBlock() {
-  debugPrintln("Reading Full Data...");
+  debugPrintln(F("Reading Full Data..."));
   uint8_t receiveLength = 0;
   uint8_t messageLength = 0;
 
@@ -223,17 +223,17 @@ uint8_t readBlock() {
       receiveLength++;
 
       if (messageLength < receiveLength) {
-        debugPrint("✅ Message Count: ");
+        debugPrint(F("✅ Message Count: "));
         debugPrintHex(messageCount);
-        debugPrint("   Length: ");
+        debugPrint(F("   Length: "));
         debugPrintHex(messageLength);
-        debugPrint("   Received All Data: ");
+        debugPrint(F("   Received All Data: "));
         for (int i = 0; i < receiveLength; i++) {
           debugPrintHex(resultBuffer[i]);
-          debugPrint(" ");
+          debugPrint(F(" "));
         }
-        debugPrintln("");
-        debugPrintln("");
+        debugPrintln();
+        debugPrintln();
         return receiveLength;
       }
       writeByte(~receivedByte);
@@ -242,7 +242,7 @@ uint8_t readBlock() {
 }
 
 int readRawData() {
-  debugPrintln("Reading Raw Data...");
+  debugPrintln(F("Reading Raw Data..."));
   unsigned long startMillis = millis();  // Start time for waiting the first byte
   int bytesRead = 0;
 
@@ -253,17 +253,17 @@ int readRawData() {
       memset(resultBuffer, 0, sizeof(resultBuffer));
 
       // Inner loop: Read all data
-      debugPrint("✅ Received Data: ");
+      debugPrint(F("✅ Received Data: "));
       while (millis() - lastByteTime < DATA_REQUEST_INTERVAL) {  // Wait up to 60ms for new data
         if (K_Serial.available() > 0) {                          // If new data is available, read it
           if (bytesRead >= sizeof(resultBuffer)) {
-            debugPrintln("\nBuffer is full. Stopping data reception.");
+            debugPrintln(F("\nBuffer is full. Stopping data reception."));
             return bytesRead;
           }
 
           resultBuffer[bytesRead] = K_Serial.read();
           debugPrintHex(resultBuffer[bytesRead]);
-          debugPrint(" ");
+          debugPrint(F(" "));
           bytesRead++;
           lastByteTime = millis();  // Reset timer
 
@@ -272,28 +272,28 @@ int readRawData() {
       }
 
       // If no new data is received within 60ms, exit the loop
-      debugPrintln("\n✅ Data reception completed.");
+      debugPrintln(F("\n✅ Data reception completed."));
       return bytesRead;
     }
   }
 
   // If no data is received within 1 seconds
-  debugPrintln("❌ Timeout: Not Received Data.");
+  debugPrintln(F("❌ Timeout: Not Received Data."));
   return 0;
 }
 
 void clearEcho(int length) {
   int result = K_Serial.available();
   if (result > 0) {
-    //debugPrint("🗑️ Cleared Echo Data: ");
+    //debugPrint(F("🗑️ Cleared Echo Data: "));
     for (int i = 0; i < length; i++) {
       byte receivedByte = K_Serial.read();
       //debugPrintHex(receivedByte);
-      //debugPrint(" ");
+      //debugPrint(F(" "));
     }
     //debugPrintln();
   } else {
-    debugPrintln("❌ Not Received Echo Data");
+    debugPrintln(F("❌ Not Received Echo Data"));
   }
 }
 
@@ -762,9 +762,9 @@ void send5baud(uint8_t data) {
   }
   bits[8] = (ones % 2 == 0) ? 1 : 0;  // parity bit
 
-  debugPrint("➡️ 5 Baud Init for Module 0x");
+  debugPrint(F("➡️ 5 Baud Init for Module 0x"));
   debugPrintHex(data);
-  debugPrint(": ");
+  debugPrint(F(": "));
 
   // Set txPin as output
   pinMode(K_line_TX, OUTPUT);
@@ -775,7 +775,7 @@ void send5baud(uint8_t data) {
     delay(200);
   }
 
-  debugPrintln("");
+  debugPrintln();
 }
 
 // Format - 7O1
@@ -807,7 +807,7 @@ int read5baud() {
 
   // Parity controll (Odd)
   if (ones % 2 == 0) {
-    debugPrintln("Parity error!");
+    debugPrintln(F("Parity error!"));
     return -2;
   }
 
