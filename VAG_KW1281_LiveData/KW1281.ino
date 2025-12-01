@@ -9,7 +9,11 @@ void KW1281() {
     ledGreen();
     readECUInfo();
     while (true) {
-      getPID(LiveData5);
+      getPID(1);
+      getPID(2);
+      getPID(3);
+      getPID(4);
+      
       readDTC();
     }
   }
@@ -672,26 +676,34 @@ float calculatePID(uint8_t id, uint8_t A, uint8_t B) {
 //0x93 - value mapped through table provided by module                              //Inclination            [%]
 //0xA0 - variable units                                                             //N/A                    [variable]
 
-void getPID(const uint8_t* dataArray) {
-  writeBlock(dataArray, 3);
-  readBlock();
+void getPID(uint8_t group) {
+  uint8_t pidBytes[3] = { 0x29, 0x00, 0x03 };
+  pidBytes[1] = group;
+  writeBlock(pidBytes, 3);
+  int length = readBlock();
 
-  uint8_t locations[] = { 3, 6, 9, 12 };
-  for (int i = 0; i < 4; i++) {
-    uint8_t id = resultBuffer[locations[i]];
+  if (resultBuffer[2] = 0xE7) {
+    int pidStart = 3;
+    int pidBytesLength = length - pidStart;
+    int pidCount = pidBytesLength / 3;  // 3 byte = 1 PID
 
-    if (id < 0x01 || id > 0xB5) continue;
+    for (int i = 0; i < pidCount; i++) {
+      int index = pidStart + i * 3;
 
-    uint8_t a = resultBuffer[locations[i] + 1];
-    uint8_t b = resultBuffer[locations[i] + 2];
+      uint8_t id = resultBuffer[index];
+      uint8_t a = resultBuffer[index + 1];
+      uint8_t b = resultBuffer[index + 2];
 
-    float value = calculatePID(id, a, b);
+      if (id < 0x01 || id > 0xB5) continue;
 
-    Serial.print(pidTable[id - 1].name);
-    Serial.print(": ");
-    Serial.print(value);
-    Serial.print(" ");
-    Serial.println(pidTable[id - 1].unit);
+      float value = calculatePID(id, a, b);
+
+      Serial.print(pidTable[id - 1].name);
+      Serial.print(": ");
+      Serial.print(value);
+      Serial.print(" ");
+      Serial.println(pidTable[id - 1].unit);
+    }
   }
 }
 
