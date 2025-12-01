@@ -709,23 +709,37 @@ void getPID(uint8_t group) {
 
 void readDTC() {
   writeBlock(readDTCs, 2);
-  readBlock();
+  int length = readBlock();
 
-  uint8_t locations[] = { 3, 6, 9, 12, 15, 18 };
+  if (resultBuffer[2] == 0xFC) {
+    int dtcStart = 3;
+    int dtcBytesLength = length - 4;
+    int dtcCount = dtcBytesLength / 3;
 
-  for (int i = 0; i < 6; i++) {
-    uint8_t a = resultBuffer[locations[i]];
-    uint8_t b = resultBuffer[locations[i] + 1];
+    for (int i = 0; i < dtcCount; i++) {
+      int index = dtcStart + i * 3;
 
-    if (a == 0x00 && b == 0x00) continue;
+      uint8_t high = resultBuffer[index];
+      uint8_t low = resultBuffer[index + 1];
+      uint8_t detail = resultBuffer[index + 2];
 
-    uint16_t dtcValue = ((uint16_t)a << 8) | b; // 16-bit DTC code
+      if (high == 0x00 && low == 0x00 && detail == 0x00) continue;  // 0x00 0x00 0x00 empty DTC
 
-    char dtcString[6];
-    sprintf(dtcString, "%05u", dtcValue);
+      uint16_t dtcCode = ((uint16_t)high << 8) | low;
 
-    Serial.print("DTC: ");
-    Serial.println(dtcString);
+      char dtcString[6];
+      sprintf(dtcString, "%05u", dtcCode);
+
+      Serial.print("DTC: ");
+      Serial.print(dtcString);
+
+      Serial.print("  Detail: 0x");
+      Serial.println(detail, HEX);
+    }
+  }
+}
+
+
   }
 }
 
