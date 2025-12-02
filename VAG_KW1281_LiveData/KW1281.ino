@@ -11,7 +11,10 @@ void KW1281() {
       getPID(3);
       getPID(4);
       
-      readDTC();
+      //readDTC();
+      //clearDTC();
+
+      //getECUInfo();
     }
   }
 }
@@ -745,6 +748,10 @@ void clearDTC() {
   }
 }
 
+void getECUInfo() {
+  writeBlock(ECU_Data, 2);
+  readECUInfo();
+}
 
 void readECUInfo() {
   int ecuInfoLength = 0;
