@@ -70,7 +70,16 @@ Additionally, I have observed that many test devices use a **1kΩ** value for **
 ---
 
 ## 📸 Project Photos
-You can find some photos of the hardware setup, wiring, and real ECU tests below:
+ - Here is the photo where I directly connect my custom-built device to the ECU of the Audi A6 2.5L 2001 using wired connections to read real-time data. The ECU model used in this setup is the Bosch EDC15VM+.
+
+<img src="https://github.com/user-attachments/assets/491eb042-311d-4672-b1ea-3c548b4ee2d6" width=50%>
+
+</br>
+</br>
+
+ - If you are wondering how I determined which wire should be connected to which pin, you can simply search the internet for your ECU model or use software tools designed for pinout identification. As an example, here is the pinout for my ECU, which I obtained online.
+
+<img src="https://github.com/user-attachments/assets/5377c988-da81-401c-8701-5b0ce9f9cfd8" width=70%>
 
 ---
 
