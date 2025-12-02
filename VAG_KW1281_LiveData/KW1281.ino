@@ -1,8 +1,5 @@
 uint8_t messageCount = 0;
-String ecu_data_1 = "";
-String ecu_data_2 = "";
-String ecu_data_3 = "";
-String ecu_data_4 = "";
+String ecuData[10];
 
 void KW1281() {
   if (initOBD2()) {
@@ -750,27 +747,21 @@ void clearDTC() {
 
 
 void readECUInfo() {
-  int byteLength = 0;
+  int ecuInfoLength = 0;
 
-  byteLength = readBlock();
-  ecu_data_1 = extractAscii(resultBuffer, byteLength);
+  for (int i = 0; i < sizeof(ecuData); i++) {
+    int byteLength = readBlock();
+    if (resultBuffer[2] == 0x09) break;
 
-  writeBlock(ACKNOWLEDGE, 2);
-  byteLength = readBlock();
-  ecu_data_2 = extractAscii(resultBuffer, byteLength);
+    ecuInfoLength++;
+    writeBlock(ACKNOWLEDGE, 2);
 
-  writeBlock(ACKNOWLEDGE, 2);
-  byteLength = readBlock();
-  ecu_data_3 = extractAscii(resultBuffer, byteLength);
+    ecuData[i] = extractAscii(resultBuffer, byteLength);
+  }
 
-  writeBlock(ACKNOWLEDGE, 2);
-  byteLength = readBlock();
-  ecu_data_4 = extractAscii(resultBuffer, byteLength);
-
-  Serial.println("ECU Data 1: " + ecu_data_1);
-  Serial.println("ECU Data 2: " + ecu_data_2);
-  Serial.println("ECU Data 3: " + ecu_data_3);
-  Serial.println("ECU Data 4: " + ecu_data_4);
+  for (int i = 0; i < ecuInfoLength; i++) {
+    Serial.println("ECU Data " + String(i + 1) + ": " + ecuData[i]);
+  }
 }
 
 
