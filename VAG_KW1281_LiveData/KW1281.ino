@@ -771,6 +771,35 @@ void readECUInfo() {
   }
 }
 
+void getSupportedGroups() {
+  uint8_t pidBytes[3] = { 0x29, 0x00, 0x03 };
+  uint8_t supportedGroups[256];
+  int supportedCount = 0;
+
+  for (uint16_t group = 0x00; group <= 0xFF; group++) {
+    pidBytes[1] = group;
+
+    writeBlock(pidBytes, 3);
+    int length = readBlock();
+
+    if (resultBuffer[2] == 0xE7) {
+      supportedGroups[supportedCount++] = group;
+    }
+  }
+
+  Serial.println("Supported Groups:");
+  for (int i = 0; i < supportedCount; i++) {
+    if (supportedGroups[i] < 0x10) Serial.print("0");
+    Serial.print(supportedGroups[i], HEX);
+    Serial.print(", ");
+  }
+  Serial.println();
+
+  Serial.print("Total Supported Groups: ");
+  Serial.println(supportedCount);
+}
+
+
 
 // ----------------------------------------- 5 Baud Functions ---------------------------------------
 
