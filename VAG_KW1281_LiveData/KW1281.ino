@@ -704,6 +704,10 @@ void getPID(uint8_t group) {
       Serial.print(" ");
       Serial.println(pidTable[id - 1].unit);
     }
+  } else {
+    debugPrint(F("Group "));
+    debugPrint(group);
+    debugPrintln(F(" is not supported"));
   }
 }
 
