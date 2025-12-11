@@ -682,7 +682,7 @@ void getPID(uint8_t group) {
   writeBlock(pidBytes, 3);
   int length = readBlock();
 
-  if (resultBuffer[2] = 0xE7) {
+  if (resultBuffer[2] == 0xE7) {
     int pidStart = 3;
     int pidBytesLength = length - pidStart;
     int pidCount = pidBytesLength / 3;  // 3 byte = 1 PID
