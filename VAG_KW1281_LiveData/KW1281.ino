@@ -66,7 +66,7 @@ void KW1281_Simulator() {
 }
 
 bool initOBD2() {
-  debugPrintln(F("Trying ISO9141 or KW1281"));
+  debugPrintln(F("Trying KW1281"));
   setSerial(false, 9600);
   delay(3000);
   send5baud(0x01);
@@ -115,7 +115,7 @@ void writeByte(uint8_t data) {
 }
 
 void writeBlock(const uint8_t* dataArray, uint8_t length) {
-  debugPrintln(F("➡️ Sending Full Data..."));
+  debugPrint(F("➡️ Sending Full Data: "));
   uint8_t newLength = length + 2;  // New array size
   uint8_t newArray[newLength];
 
@@ -140,7 +140,6 @@ void writeBlock(const uint8_t* dataArray, uint8_t length) {
     debugPrintHex(newArray[i]);
     debugPrint(F(" "));
   }
-  debugPrintln();
   debugPrintln();
 }
 
@@ -198,7 +197,7 @@ int readByte() {
     if (K_Serial.available() > 0) {                // If data available
       uint8_t receivedData = K_Serial.read();
       delay(1);
-      // debugPrint(F("✅ Received Data: "));
+      // debugPrint(F("✅ Received Byte: "));
       // debugPrintHex(receivedData);
       // debugPrintln();
 
@@ -211,7 +210,7 @@ int readByte() {
 }
 
 uint8_t readBlock() {
-  debugPrintln(F("Reading Full Data..."));
+  debugPrint(F("↩️ Reading Full Data: "));
   uint8_t receiveLength = 0;
   uint8_t messageLength = 0;
 
@@ -229,8 +228,8 @@ uint8_t readBlock() {
       if (messageLength < receiveLength) {
         debugPrint(F("✅ Message Count: "));
         debugPrintHex(messageCount);
-        debugPrint(F("   Length: "));
-        debugPrintHex(messageLength);
+        //debugPrint(F("   Length: "));
+        //debugPrintHex(messageLength);
         debugPrint(F("   Received All Data: "));
         for (int i = 0; i < receiveLength; i++) {
           debugPrintHex(resultBuffer[i]);
@@ -246,7 +245,7 @@ uint8_t readBlock() {
 }
 
 int readRawData() {
-  debugPrintln(F("Reading Raw Data..."));
+  debugPrint(F("Reading Raw Data: "));
   unsigned long startMillis = millis();  // Start time for waiting the first byte
   int bytesRead = 0;
 
@@ -677,12 +676,14 @@ float calculatePID(uint8_t id, uint8_t A, uint8_t B) {
 //0xA0 - variable units                                                             //N/A                    [variable]
 
 void getPID(uint8_t group) {
+  Serial.print("✅ Reading Group: "), Serial.println(group);
   uint8_t pidBytes[3] = { 0x29, 0x00, 0x03 };
   pidBytes[1] = group;
   writeBlock(pidBytes, 3);
   int length = readBlock();
 
   if (resultBuffer[2] == 0xE7) {
+    Serial.println("✅ Calculating Data.");
     int pidStart = 3;
     int pidBytesLength = length - pidStart;
     int pidCount = pidBytesLength / 3;  // 3 byte = 1 PID
@@ -705,13 +706,15 @@ void getPID(uint8_t group) {
       Serial.println(pidTable[id - 1].unit);
     }
   } else {
-    debugPrint(F("Group "));
+    debugPrint(F("❌ Group "));
     debugPrint(group);
-    debugPrintln(F(" is not supported"));
+    debugPrintln(F(" is not supported."));
   }
+  Serial.println();
 }
 
 void readDTC() {
+  Serial.println("✅ Reading DTCs.");
   writeBlock(readDTCs, 2);
   int length = readBlock();
 
@@ -719,6 +722,11 @@ void readDTC() {
     int dtcStart = 3;
     int dtcBytesLength = length - 4;
     int dtcCount = dtcBytesLength / 3;
+
+    if (dtcCount == 0) {
+      Serial.println("✅ No DTCs Found.");
+      return;
+    }
 
     for (int i = 0; i < dtcCount; i++) {
       int index = dtcStart + i * 3;
@@ -734,21 +742,21 @@ void readDTC() {
       char dtcString[6];
       sprintf(dtcString, "%05u", dtcCode);
 
-      Serial.print("DTC: ");
-      Serial.print(dtcString);
-
-      Serial.print("  Detail: 0x");
-      Serial.println(detail, HEX);
+      Serial.print("DTC: "), Serial.print(dtcString);
+      Serial.print("  Detail: 0x"), Serial.println(detail, HEX);
     }
   }
 }
 
 void clearDTC() {
+  Serial.println("✅ Clearing DTCs.");
   writeBlock(clearDTCs, 2);
   int length = readBlock();
 
   if (resultBuffer[2] == 0x09) {
-    Serial.print("DTC Cleared Successfully.");
+    Serial.println("✅ DTCs Cleared Successfully.");
+  } else {
+    Serial.println("❌ DTCs Not Cleared.");
   }
 }
 
@@ -758,6 +766,7 @@ void getECUInfo() {
 }
 
 void readECUInfo() {
+  Serial.println("✅ Reading ECU Info.");
   int ecuInfoLength = 0;
 
   for (int i = 0; i < sizeof(ecuData); i++) {
@@ -776,6 +785,7 @@ void readECUInfo() {
 }
 
 void getSupportedGroups() {
+  Serial.println("✅ Reading Supported Groups.");
   uint8_t pidBytes[3] = { 0x29, 0x00, 0x03 };
   uint8_t supportedGroups[256];
   int supportedCount = 0;
@@ -809,6 +819,7 @@ void getSupportedGroups() {
 
 // Format - 7O1
 void send5baud(uint8_t data) {
+  debugPrintln(F("✅ Sending 5 Baud data."));
   uint8_t bits[10];
   bits[0] = 0;  // start bit
   bits[9] = 1;  // stop bit
@@ -843,6 +854,7 @@ void send5baud(uint8_t data) {
 
 // Format - 7O1
 int read5baud() {
+  debugPrintln(F("✅ Reading 5 Baud data."));
   unsigned long t0 = millis();
   while (digitalRead(K_line_RX) == HIGH) {
     if (millis() - t0 > 2000) return -1;
@@ -874,5 +886,8 @@ int read5baud() {
     return -2;
   }
 
+  debugPrint(F("✅ Received 5 Baud data: "));
+  debugPrintHex(data);
+  debugPrintln();
   return data;
 }
