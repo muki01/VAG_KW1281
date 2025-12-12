@@ -1,10 +1,13 @@
 uint8_t messageCount = 0;
 String ecuData[10];
+uint8_t supportedGroups[256];
+uint8_t supportedGroupsCount;
 
 void KW1281() {
   if (initOBD2()) {
     ledGreen();
     readECUInfo();
+    getSupportedGroups();
     while (true) {
       getPID(1);
       getPID(2);
@@ -787,7 +790,6 @@ void readECUInfo() {
 void getSupportedGroups() {
   Serial.println("✅ Reading Supported Groups.");
   uint8_t pidBytes[3] = { 0x29, 0x00, 0x03 };
-  uint8_t supportedGroups[256];
   int supportedCount = 0;
 
   for (uint16_t group = 0x00; group <= 0xFF; group++) {
@@ -800,6 +802,7 @@ void getSupportedGroups() {
       supportedGroups[supportedCount++] = group;
     }
   }
+  supportedGroupsCount = supportedCount;
 
   Serial.println("Supported Groups:");
   for (int i = 0; i < supportedCount; i++) {
