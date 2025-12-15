@@ -1,311 +1,145 @@
-uint8_t messageCount = 0;
-String ecuData[10];
-uint8_t supportedGroups[256];
-uint8_t supportedGroupsCount;
-
-void KW1281() {
-  if (initOBD2()) {
-    ledGreen();
-    readECUInfo();
-    getSupportedGroups();
-    while (true) {
-      getPID(1);
-      getPID(2);
-      getPID(3);
-      getPID(4);
-      
-      //readDTC();
-      //clearDTC();
-
-      //getECUInfo();
-    }
-  }
-}
-
-void KW1281_Simulator() {
-  if (connectionStatus == true) {
-    writeBlock(ECU_Data1_Response, sizeof(ECU_Data1_Response));
-    while (connectionStatus == true) {
-      if (readBlock()) {
-        if (resultBuffer[2] == 0x09) writeBlock(ACKNOWLEDGE_Response, sizeof(ACKNOWLEDGE_Response));
-        if (resultBuffer[2] == 0x07) writeBlock(readDTC_Response, sizeof(readDTC_Response));
-        if (resultBuffer[2] == 0x05) writeBlock(readDTC_Response, sizeof(readDTC_Response));
-        if (resultBuffer[2] == 0x06) connectionStatus = false;
-        if (resultBuffer[2] == 0x29) {
-          if (resultBuffer[3] == 0x01) writeBlock(LiveData1_Response, sizeof(LiveData1_Response));
-          if (resultBuffer[3] == 0x02) writeBlock(LiveData2_Response, sizeof(LiveData2_Response));
-          if (resultBuffer[3] == 0x03) writeBlock(LiveData3_Response, sizeof(LiveData3_Response));
-          if (resultBuffer[3] == 0x04) writeBlock(LiveData4_Response, sizeof(LiveData4_Response));
-          if (resultBuffer[3] == 0x05) writeBlock(LiveData5_Response, sizeof(LiveData5_Response));
-          if (resultBuffer[3] == 0x06) writeBlock(LiveData6_Response, sizeof(LiveData6_Response));
-          if (resultBuffer[3] == 0x07) writeBlock(LiveData7_Response, sizeof(LiveData7_Response));
-          if (resultBuffer[3] == 0x08) writeBlock(LiveData8_Response, sizeof(LiveData8_Response));
-          if (resultBuffer[3] == 0x09) writeBlock(LiveData9_Response, sizeof(LiveData9_Response));
-          if (resultBuffer[3] == 0x10) writeBlock(LiveData10_Response, sizeof(LiveData10_Response));
-          if (resultBuffer[3] == 0x11) writeBlock(LiveData11_Response, sizeof(LiveData11_Response));
-        }
-      }
-    }
+void setSerial(bool enabled, int BAUDRATE) {
+  if (enabled) {
+#if defined(__AVR_ATmega168__) || defined(__AVR_ATmega328P__)
+    K_Serial.begin(BAUDRATE);
+#elif defined(ESP8266)
+    K_Serial.begin(BAUDRATE, SERIAL_8N1);
+#elif defined(ESP32)
+    K_Serial.begin(BAUDRATE, SERIAL_8N1, K_line_RX, K_line_TX);
+#endif
   } else {
-    setSerial(false, 9600);
-    int receivedByte = read5baud();
-    if (receivedByte >= 0) {
-      debugPrint(F("Received Data: "));
-      debugPrintHex(receivedByte);
-      debugPrintln();
-      if (receivedByte == 0x01 || receivedByte == 0x03) {
-        setSerial(true, 9600);
-        writeRawData(initKW1281, sizeof(initKW1281), false);
-        if (readRawData()) {
-          if (resultBuffer[0] == 0x75) {
-            debugPrintln(F("Connection Established !!"));
-            connectionStatus = true;
-            ledGreen();
-          }
-        }
-      }
+    K_Serial.end();
+    pinMode(K_line_RX, INPUT_PULLUP);
+    pinMode(K_line_TX, OUTPUT);
+    digitalWrite(K_line_TX, HIGH);
+  }
+}
+
+byte checksum8_XOR(const byte data[], int length) {
+  byte checksum = 0;
+  for (int i = 0; i < length; i++) {
+    checksum ^= data[i];  // XOR operation
+  }
+  return checksum;
+}
+
+byte checksum8_Modulo256(const byte data[], int length) {
+  unsigned int sum = 0;
+  for (int i = 0; i < length; i++) {
+    sum += data[i];
+  }
+  return (byte)(sum % 256);  // or (byte)sum; because byte automatically wraps around at 256
+}
+
+byte checksum8_TwosComplement(const byte data[], int length) {
+  unsigned int sum = 0;
+  for (int i = 0; i < length; i++) {
+    sum += data[i];
+  }
+  byte checksum = (byte)((0x100 - (sum & 0xFF)) & 0xFF);
+  return checksum;
+}
+
+void K_Line_Simulate() {
+  int sampleIdList[] = { 0x11, 0x18, 0x2A };
+  int sampleData[] = { 0x0A, 0x1B, 0x2C, 0x3D, 0x4E, 0x5F, 0xA0, 0xB1 };
+  int dataLength = random(1, 9);
+
+  for (int i = 0; i < 3; i++) {
+    int idIndex = random(sizeof(sampleIdList) / sizeof(sampleIdList[0]));
+    printHex(sampleIdList[idIndex]);
+  }
+
+  Serial.print(",");
+  printHex(0);
+  Serial.print(",");
+  printHex(0);
+  Serial.print(",");
+  for (int i = 0; i < dataLength; i++) {
+    int dataIndex = random(sizeof(sampleData) / sizeof(sampleData[0]));
+    printHex(sampleData[dataIndex]);
+  }
+
+  Serial.print("\n");
+  delay(200);
+}
+
+void printPacket(const byte data[], int length) {
+  // printHex(data[0]);
+  // printHex(data[1]);
+  // printHex(data[2]);
+  // Serial.print(",");
+  // printHex(0);
+  // Serial.print(",");
+  // printHex(0);
+  // Serial.print(",");
+
+  for (int i = 0; i < length; i++) {
+    printHex(data[i]);
+  }
+  Serial.print("\n");
+}
+
+void printHex(byte num) {
+  if (num < 0x10) Serial.print("0");
+  Serial.print(num, HEX);
+}
+
+
+void ledGreen() {
+  leds[0] = CRGB::Green;
+  FastLED.show();
+}
+
+void ledRed() {
+  leds[0] = CRGB::Red;
+  FastLED.show();
+}
+
+
+bool compareData(const uint8_t* dataArray, uint8_t length) {
+  //debugPrintln("Comparing !");
+  for (size_t i = 0; i < length; i++) {
+    if (dataArray[i] != resultBuffer[i]) {
+      // debugPrint("Byte: ");
+      // debugPrint(i);
+      // debugPrintln(" Not same!");
+      return false;
     }
   }
-}
-
-bool initOBD2() {
-  debugPrintln(F("Trying KW1281"));
-  setSerial(false, 9600);
-  delay(3000);
-  send5baud(0x01);
-
-  setSerial(true, 9600);
-  DATA_REQUEST_INTERVAL = 30;
-
-  if (readRawData()) {
-    if (resultBuffer[0] == 0x55) {
-      debugPrintln(F("➡️ Writing KW2 Reversed"));
-      K_Serial.write(~resultBuffer[2]);  //0xF7
-      delay(WRITE_DELAY);
-      clearEcho(1);
-
-      DATA_REQUEST_INTERVAL = 60;
-
-      if (readRawData()) {
-        if (resultBuffer[0]) {
-          connectionStatus = true;
-          debugPrintln(F("✅ Connection established with car"));
-          debugPrintln();
-          debugPrintln();
-          return true;
-        } else {
-          debugPrintln(F("❌ No Data Retrieved from Car"));
-        }
-      }
-    }
-  } else {
-    DATA_REQUEST_INTERVAL = 60;
-  }
-  return false;
-}
-
-// ----------------------------------------- Write Functions ---------------------------------------
-
-void writeByte(uint8_t data) {
-  // debugPrint(F("➡️ Sending Byte: "));
-  // debugPrintHex(data);
-  // debugPrintln();
-
-  K_Serial.write(data);
-  delay(3);
-
-  clearEcho(1);
-}
-
-void writeBlock(const uint8_t* dataArray, uint8_t length) {
-  debugPrint(F("➡️ Sending Full Data: "));
-  uint8_t newLength = length + 2;  // New array size
-  uint8_t newArray[newLength];
-
-  messageCount = messageCount + 1;
-
-  newArray[0] = length + 1;    // byte 0 = length + 1
-  newArray[1] = messageCount;  // byte 1 = messageCount
-  for (uint8_t i = 0; i < length; i++) {
-    newArray[i + 2] = dataArray[i];  // dataArray
-  }
-
-  // Send
-  for (size_t i = 0; i < newLength; i++) {
-    writeByte(newArray[i]);
-
-    if (!readByte()) break;
-  }
-  debugPrint(F("✅ Message Count: "));
-  debugPrintHex(messageCount);
-  debugPrint(F("   Sended All Data: "));
-  for (int i = 0; i < newLength; i++) {
-    debugPrintHex(newArray[i]);
-    debugPrint(F(" "));
-  }
-  debugPrintln();
-}
-
-void writeRawData(const uint8_t *dataArray, uint8_t length, uint8_t checksumType) {
-  uint8_t totalLength = length;  // default: no checksum
-  uint8_t checksum = 0;
-
-  switch (checksumType) {
-    case 0:
-      totalLength = length;
-      break;
-    case 1:
-      checksum = checksum8_XOR(dataArray, length);
-      totalLength = length + 1;
-      break;
-    case 2:
-      checksum = checksum8_Modulo256(dataArray, length);
-      totalLength = length + 1;
-      break;
-    case 3:
-      checksum = checksum8_TwosComplement(dataArray, length);
-      totalLength = length + 1;
-      break;
-    default:
-      totalLength = length;
-      break;
-  }
-
-  uint8_t sendData[totalLength];
-  memcpy(sendData, dataArray, length);
-  if (checksumType != 0) {
-    sendData[totalLength - 1] = checksum;
-  }
-
-  //printPacket(sendData, totalLength);
-
-  debugPrint(F("➡️ Sending Raw Data: "));
-  for (size_t i = 0; i < totalLength; i++) {
-    K_Serial.write(sendData[i]);
-    debugPrintHex(sendData[i]);
-    debugPrint(F(" "));
-    delay(WRITE_DELAY);
-  }
-  debugPrintln();
-  clearEcho(totalLength);
+  //debugPrintln(" Same!");
+  return true;
 }
 
 
-// ----------------------------------------- Read Functions ---------------------------------------
+uint16_t To16Bit(uint8_t msb, uint8_t lsb) {
+  return ((uint16_t)msb << 8) | lsb;
+}
 
-int readByte() {
-  unsigned long startMillis = millis();  // Start time for waiting the first byte
+int8_t ToSigned8(uint8_t value) {
+  return (int8_t)value;  // 0..255 -> -128..127
+}
 
-  while (millis() - startMillis < DATA_TIMEOUT) {  // Wait for data for the specified timeout
-    if (K_Serial.available() > 0) {                // If data available
-      uint8_t receivedData = K_Serial.read();
-      delay(1);
-      // debugPrint(F("✅ Received Byte: "));
-      // debugPrintHex(receivedData);
-      // debugPrintln();
+int16_t ToSigned16(uint8_t msb, uint8_t lsb) {
+  return (int16_t)((msb << 8) | lsb);
+}
 
-      return receivedData;
+String extractAscii(const uint8_t* buffer, int length) {
+  // header = first 3 byte (usually: length, blockCounter, command)
+  // terminator = last byte (0x03)
+  // ASCII data = from 3rd byte to one before the last byte
+
+  String s = "";
+  for (int i = 3; i < length - 1; i++) {
+    uint8_t c = buffer[i];
+    if (c >= 0x20 && c <= 0x7E) {  //  ASCII filtering
+      s += (char)c;
     }
   }
-
-  debugPrintln(F("❌ Timeout: Not Received Data."));  // If no data is received within 1 seconds
-  return -1;
-}
-
-uint8_t readBlock() {
-  debugPrint(F("↩️ Reading Full Data: "));
-  uint8_t receiveLength = 0;
-  uint8_t messageLength = 0;
-
-  memset(resultBuffer, 0, sizeof(resultBuffer));
-  while (true) {
-
-    int receivedByte = readByte();
-    if (receivedByte > -1) {
-      resultBuffer[receiveLength] = receivedByte;
-      if (receiveLength == 0) messageLength = receivedByte;
-      if (receiveLength == 1) messageCount = receivedByte;
-
-      receiveLength++;
-
-      if (messageLength < receiveLength) {
-        debugPrint(F("✅ Message Count: "));
-        debugPrintHex(messageCount);
-        //debugPrint(F("   Length: "));
-        //debugPrintHex(messageLength);
-        debugPrint(F("   Received All Data: "));
-        for (int i = 0; i < receiveLength; i++) {
-          debugPrintHex(resultBuffer[i]);
-          debugPrint(F(" "));
-        }
-        debugPrintln();
-        debugPrintln();
-        return receiveLength;
-      }
-      writeByte(~receivedByte);
-    }
-  }
-}
-
-int readRawData() {
-  debugPrint(F("Reading Raw Data: "));
-  unsigned long startMillis = millis();  // Start time for waiting the first byte
-  int bytesRead = 0;
-
-  // Wait for data for the specified timeout
-  while (millis() - startMillis < DATA_TIMEOUT) {
-    if (K_Serial.available() > 0) {           // If the first byte is received
-      unsigned long lastByteTime = millis();  // Get the last received byte time
-      memset(resultBuffer, 0, sizeof(resultBuffer));
-
-      // Inner loop: Read all data
-      debugPrint(F("✅ Received Data: "));
-      while (millis() - lastByteTime < DATA_REQUEST_INTERVAL) {  // Wait up to 60ms for new data
-        if (K_Serial.available() > 0) {                          // If new data is available, read it
-          if (bytesRead >= sizeof(resultBuffer)) {
-            debugPrintln(F("\nBuffer is full. Stopping data reception."));
-            return bytesRead;
-          }
-
-          resultBuffer[bytesRead] = K_Serial.read();
-          debugPrintHex(resultBuffer[bytesRead]);
-          debugPrint(F(" "));
-          bytesRead++;
-          lastByteTime = millis();  // Reset timer
-
-          // If buffer is full, stop reading and print message
-        }
-      }
-
-      // If no new data is received within 60ms, exit the loop
-      debugPrintln(F("\n✅ Data reception completed."));
-      return bytesRead;
-    }
-  }
-
-  // If no data is received within 1 seconds
-  debugPrintln(F("❌ Timeout: Not Received Data."));
-  return 0;
-}
-
-void clearEcho(int length) {
-  int result = K_Serial.available();
-  if (result > 0) {
-    //debugPrint(F("🗑️ Cleared Echo Data: "));
-    for (int i = 0; i < length; i++) {
-      byte receivedByte = K_Serial.read();
-      //debugPrintHex(receivedByte);
-      //debugPrint(F(" "));
-    }
-    //debugPrintln();
-  } else {
-    debugPrintln(F("❌ Not Received Echo Data"));
-  }
+  return s;
 }
 
 
-
-// ----------------------------------------- PID Functions ----------------------------------------
 
 struct PIDFormula {
   uint8_t id;
@@ -520,7 +354,7 @@ float calculatePID(uint8_t id, uint8_t A, uint8_t B) {
     case 0x1D: return ((B < A) ? 1 : 2);                                           //Map number             [Map1/Map2]
     case 0x1E: return B * A * 1 / 12;                                              //Knock correction depth [deg]
     case 0x1F: return B * A * 1 / 2560;                                            //N/A                    [N/A]
-    case 0x20: return ToSigned8(B);                                                 //N/A                    [N/A]
+    case 0x20: return ToSigned8(B);                                                //N/A                    [N/A]
     case 0x21: return (B / A) * 100;                                               //Load                   [%]
     case 0x22: return (B - 128) * A * 0.01;                                        //Idle correction        [KW]
     case 0x23: return B * A * 0.01;                                                //Fuel rate              [l/h]
@@ -546,7 +380,7 @@ float calculatePID(uint8_t id, uint8_t A, uint8_t B) {
     case 0x37: return B * A * 0.005;                                               //Time                   [s]
     case 0x38: return (A << 8) & B;                                                //Code for WSC16=0       [N/A]
     case 0x39: return ((A << 8) & B) + 65536;                                      //Code for WSC16=1       [N/A]
-    case 0x3A: return ToSigned8(B) * 1.023;                                         //Misfires               [/s]
+    case 0x3A: return ToSigned8(B) * 1.023;                                        //Misfires               [/s]
     case 0x3B: return To16Bit(A, B) * 1 / 32768;                                   //Segment correction     [N/A]
     case 0x3C: return To16Bit(A, B) * 1 / 100;                                     //Time resolution        [s]
     case 0x3D: return (B - 128) / A;                                               //Difference             [N/A]
@@ -554,10 +388,10 @@ float calculatePID(uint8_t id, uint8_t A, uint8_t B) {
     case 0x40: return B + A;                                                       //Resistance             [Ohm]
     case 0x41: return (B - 127) * A * 0.01;                                        //Distance               [mm]
     case 0x42: return B * A / 512;                                                 //Voltage                [V]
-    case 0x43: return ToSigned16(A, B) * 2.5;                                        //Steering angle         [deg]
-    case 0x44: return ToSigned16(A, B) * 0.1358;                                     //Turn rate              [deg/s]
-    case 0x45: return ToSigned16(A, B) * 0.3255;                                     //Pressure               [bar]
-    case 0x46: return ToSigned16(A, B) * 0.192;                                      //Lat. acceleration      [m/s^2]
+    case 0x43: return ToSigned16(A, B) * 2.5;                                      //Steering angle         [deg]
+    case 0x44: return ToSigned16(A, B) * 0.1358;                                   //Turn rate              [deg/s]
+    case 0x45: return ToSigned16(A, B) * 0.3255;                                   //Pressure               [bar]
+    case 0x46: return ToSigned16(A, B) * 0.192;                                    //Lat. acceleration      [m/s^2]
     case 0x47: return B * A;                                                       //Distance               [cm]
     case 0x48: return (A * 255 + B * (211 - A)) / 4080;                            //Voltage                [V]
     case 0x49: return A * B * 0.01;                                                //Resistance             [Ohm]
@@ -565,14 +399,14 @@ float calculatePID(uint8_t id, uint8_t A, uint8_t B) {
     case 0x4B: return A * 256 + B;                                                 //Fault code             [N/A]
     case 0x4C: return A * 255 + B;                                                 //Resistance             [kOhm]
     case 0x4D: return (255 * A + B * 60) / 4080;                                   //Voltage                [V]
-    case 0x4E: return ToSigned8(B) * 1.819;                                         //Misfires               [/s]
+    case 0x4E: return ToSigned8(B) * 1.819;                                        //Misfires               [/s]
     case 0x4F: return B;                                                           //Channel number         [N/A]
     case 0x50: return To16Bit(A, B) / 100;                                         //Resistance             [kOhm]
-    case 0x51: return ToSigned16(A, B) * 0.04375;                                    //Steering angle         [deg]
-    case 0x52: return ToSigned16(A, B) * 0.00981;                                    //Lat. acceleration      [m/s^2]
-    case 0x53: return ToSigned16(A, B) * 0.01;                                       //Pressure               [bar]
-    case 0x54: return ToSigned16(A, B) * 0.0973;                                     //Long. acceleration     [m/s^2]
-    case 0x55: return ToSigned16(A, B) * 0.002865;                                   //Turn rate              [deg/s]
+    case 0x51: return ToSigned16(A, B) * 0.04375;                                  //Steering angle         [deg]
+    case 0x52: return ToSigned16(A, B) * 0.00981;                                  //Lat. acceleration      [m/s^2]
+    case 0x53: return ToSigned16(A, B) * 0.01;                                     //Pressure               [bar]
+    case 0x54: return ToSigned16(A, B) * 0.0973;                                   //Long. acceleration     [m/s^2]
+    case 0x55: return ToSigned16(A, B) * 0.002865;                                 //Turn rate              [deg/s]
     case 0x56: return B * A * 0.1;                                                 //Current                [A]
     case 0x57: return A * (B - 128) * 0.1;                                         //Turn rate              [deg/s]
     case 0x58: return B * A * 0.01;                                                //Resistance             [kOhm]
@@ -585,7 +419,7 @@ float calculatePID(uint8_t id, uint8_t A, uint8_t B) {
     case 0x60: return A * B * 0.1;                                                 //Pressure               [mbar]
     case 0x61: return (B - A) * 5;                                                 //Cat-temperature        [degC]
     case 0x62: return A * B * 0.1;                                                 //Impulses               [/km]
-    case 0x63: return ToSigned16(A, B);                                              //N/A                    [N/A]
+    case 0x63: return ToSigned16(A, B);                                            //N/A                    [N/A]
     case 0x64: return A * B * 0.1;                                                 //Pressure               [bar]
     case 0x65: return B * A * 0.001;                                               //Fuel level factor      [l/mm]
     case 0x66: return B * A * 0.1;                                                 //Fuel level             [mm]
@@ -593,13 +427,13 @@ float calculatePID(uint8_t id, uint8_t A, uint8_t B) {
     case 0x68: return (B - 128) * A * 0.2;                                         //Volume                 [ml]
     case 0x69: return (B - 128) * A * 0.01;                                        //Distance               [m]
     case 0x6A: return (B - 128) * A * 0.1;                                         //Speed                  [km/h]
-    case 0x6B: return ToSigned16(A, B);                                              //Hex bytes              [hex(A)hex(B)]
+    case 0x6B: return ToSigned16(A, B);                                            //Hex bytes              [hex(A)hex(B)]
     case 0x6F: return 0x6F0000 | (A << 8) | B;                                     //Mileage                [km]
     case 0x70: return (B - 128) * A * 0.001;                                       //Angle                  [deg]
     case 0x71: return (B - 128) * A * 0.01;                                        //N/A                    [N/A]
     case 0x72: return (B - 128) * A;                                               //Altitude               [m]
-    case 0x73: return ToSigned16(A, B);                                              //Power                  [W]
-    case 0x74: return ToSigned16(A, B);                                              //RPM                    [/min]
+    case 0x73: return ToSigned16(A, B);                                            //Power                  [W]
+    case 0x74: return ToSigned16(A, B);                                            //RPM                    [/min]
     case 0x75: return (B - 64) * A * 0.01;                                         //Temperature            [degC]
     case 0x77: return B * A * 0.01;                                                //Percentage             [%]
     case 0x78: return B * A * 1.41;                                                //Angle                  [deg]
@@ -634,7 +468,7 @@ float calculatePID(uint8_t id, uint8_t A, uint8_t B) {
     case 0x9A: return B * A;                                                       //Angle                  [deg]
     case 0x9B: return (A * B * 0.01) - 90;                                         //Angle                  [deg]
     case 0x9C: return To16Bit(A, B);                                               //Distance               [cm]
-    case 0x9D: return ToSigned16(A, B);                                              //Distance               [cm]
+    case 0x9D: return ToSigned16(A, B);                                            //Distance               [cm]
     case 0x9E: return To16Bit(A, B) * 0.01;                                        //Speed                  [km/h]
     case 0x9F: return ((B - 127) * 256 + A) * 0.1;                                 //Temperature            [degC]
     case 0xA1: return To16Bit(A, B);                                               //Binary bytes           [bin(A)bin(B)]
@@ -642,7 +476,7 @@ float calculatePID(uint8_t id, uint8_t A, uint8_t B) {
     case 0xA3: return B / 100.0 + A;                                               //Time                   [hh:mm]
     case 0xA4: return ((B <= 100) ? B : ((B > 100 && B <= 200) ? (B - 100) : B));  //Percentage             [%]
     case 0xA5: return ((B * 256) + A - 32768);                                     //Current                [mA]
-    case 0xA6: return ToSigned16(A, B) * 2.5;                                        //Turn rate              [deg/s]
+    case 0xA6: return ToSigned16(A, B) * 2.5;                                      //Turn rate              [deg/s]
     case 0xA7: return B * A * 0.001;                                               //Resistance             [mOhm]
     case 0xA8: return (256 * A + B) * 0.01;                                        //Percentage             [%]
     case 0xA9: return B * A + 200;                                                 //Nernst voltage         [mV]
@@ -677,220 +511,3 @@ float calculatePID(uint8_t id, uint8_t A, uint8_t B) {
 //0x8D - ASCII string from list provided by module                                  //Text from table        [text]
 //0x93 - value mapped through table provided by module                              //Inclination            [%]
 //0xA0 - variable units                                                             //N/A                    [variable]
-
-void getPID(uint8_t group) {
-  Serial.print("✅ Reading Group: "), Serial.println(group);
-  uint8_t pidBytes[3] = { 0x29, 0x00, 0x03 };
-  pidBytes[1] = group;
-  writeBlock(pidBytes, 3);
-  int length = readBlock();
-
-  if (resultBuffer[2] == 0xE7) {
-    Serial.println("✅ Calculating Data.");
-    int pidStart = 3;
-    int pidBytesLength = length - pidStart;
-    int pidCount = pidBytesLength / 3;  // 3 byte = 1 PID
-
-    for (int i = 0; i < pidCount; i++) {
-      int index = pidStart + i * 3;
-
-      uint8_t id = resultBuffer[index];
-      uint8_t a = resultBuffer[index + 1];
-      uint8_t b = resultBuffer[index + 2];
-
-      if (id < 0x01 || id > 0xB5) continue;
-
-      float value = calculatePID(id, a, b);
-
-      Serial.print(pidTable[id - 1].name);
-      Serial.print(": ");
-      Serial.print(value);
-      Serial.print(" ");
-      Serial.println(pidTable[id - 1].unit);
-    }
-  } else {
-    debugPrint(F("❌ Group "));
-    debugPrint(group);
-    debugPrintln(F(" is not supported."));
-  }
-  Serial.println();
-}
-
-void readDTC() {
-  Serial.println("✅ Reading DTCs.");
-  writeBlock(readDTCs, 2);
-  int length = readBlock();
-
-  if (resultBuffer[2] == 0xFC) {
-    int dtcStart = 3;
-    int dtcBytesLength = length - 4;
-    int dtcCount = dtcBytesLength / 3;
-
-    if (dtcCount == 0) {
-      Serial.println("✅ No DTCs Found.");
-      return;
-    }
-
-    for (int i = 0; i < dtcCount; i++) {
-      int index = dtcStart + i * 3;
-
-      uint8_t high = resultBuffer[index];
-      uint8_t low = resultBuffer[index + 1];
-      uint8_t detail = resultBuffer[index + 2];
-
-      if (high == 0x00 && low == 0x00 && detail == 0x00) continue;  // 0x00 0x00 0x00 empty DTC
-
-      uint16_t dtcCode = ((uint16_t)high << 8) | low;
-
-      char dtcString[6];
-      sprintf(dtcString, "%05u", dtcCode);
-
-      Serial.print("DTC: "), Serial.print(dtcString);
-      Serial.print("  Detail: 0x"), Serial.println(detail, HEX);
-    }
-  }
-}
-
-void clearDTC() {
-  Serial.println("✅ Clearing DTCs.");
-  writeBlock(clearDTCs, 2);
-  int length = readBlock();
-
-  if (resultBuffer[2] == 0x09) {
-    Serial.println("✅ DTCs Cleared Successfully.");
-  } else {
-    Serial.println("❌ DTCs Not Cleared.");
-  }
-}
-
-void getECUInfo() {
-  writeBlock(ECU_Data, 2);
-  readECUInfo();
-}
-
-void readECUInfo() {
-  Serial.println("✅ Reading ECU Info.");
-  int ecuInfoLength = 0;
-
-  for (int i = 0; i < sizeof(ecuData); i++) {
-    int byteLength = readBlock();
-    if (resultBuffer[2] == 0x09) break;
-
-    ecuInfoLength++;
-    writeBlock(ACKNOWLEDGE, 2);
-
-    ecuData[i] = extractAscii(resultBuffer, byteLength);
-  }
-
-  for (int i = 0; i < ecuInfoLength; i++) {
-    Serial.println("ECU Data " + String(i + 1) + ": " + ecuData[i]);
-  }
-}
-
-void getSupportedGroups() {
-  Serial.println("✅ Reading Supported Groups.");
-  uint8_t pidBytes[3] = { 0x29, 0x00, 0x03 };
-  int supportedCount = 0;
-
-  for (uint16_t group = 0x00; group <= 0xFF; group++) {
-    pidBytes[1] = group;
-
-    writeBlock(pidBytes, 3);
-    int length = readBlock();
-
-    if (resultBuffer[2] == 0xE7) {
-      supportedGroups[supportedCount++] = group;
-    }
-  }
-  supportedGroupsCount = supportedCount;
-
-  Serial.println("Supported Groups:");
-  for (int i = 0; i < supportedCount; i++) {
-    if (supportedGroups[i] < 0x10) Serial.print("0");
-    Serial.print(supportedGroups[i], HEX);
-    Serial.print(", ");
-  }
-  Serial.println();
-
-  Serial.print("Total Supported Groups: ");
-  Serial.println(supportedCount);
-}
-
-
-
-// ----------------------------------------- 5 Baud Functions ---------------------------------------
-
-// Format - 7O1
-void send5baud(uint8_t data) {
-  debugPrintln(F("✅ Sending 5 Baud data."));
-  uint8_t bits[10];
-  bits[0] = 0;  // start bit
-  bits[9] = 1;  // stop bit
-
-  // 7-bit data
-  for (int i = 0; i < 7; i++) {
-    bits[i + 1] = (data >> i) & 1;
-  }
-
-  // Odd parity calculation
-  uint8_t ones = 0;
-  for (int i = 1; i <= 7; i++) {
-    if (bits[i]) ones++;
-  }
-  bits[8] = (ones % 2 == 0) ? 1 : 0;  // parity bit
-
-  debugPrint(F("➡️ 5 Baud Init for Module 0x"));
-  debugPrintHex(data);
-  debugPrint(F(": "));
-
-  // Set txPin as output
-  pinMode(K_line_TX, OUTPUT);
-
-  for (int i = 0; i < 10; i++) {
-    debugPrint(bits[i] ? "1" : "0");
-    digitalWrite(K_line_TX, bits[i] ? HIGH : LOW);
-    delay(200);
-  }
-
-  debugPrintln();
-}
-
-// Format - 7O1
-int read5baud() {
-  debugPrintln(F("✅ Reading 5 Baud data."));
-  unsigned long t0 = millis();
-  while (digitalRead(K_line_RX) == HIGH) {
-    if (millis() - t0 > 2000) return -1;
-  }
-
-  uint8_t bits[10];
-  uint8_t data = 0;
-  int ones = 0;
-  delayMicroseconds(100000);
-
-  for (int i = 0; i < 10; i++) {  // Bits: 0=start, 1..7=data, 8=parity, 9=stop
-    bits[i] = digitalRead(K_line_RX) ? 1 : 0;
-
-    if (i >= 1 && i <= 7) {
-      data |= (bits[i] << (i - 1));  // Save data bits
-      if (bits[i]) ones++;
-    } else if (i == 8) {  // parity bit
-      if (bits[i]) ones++;
-    } else if (i == 9) {  // stop bit
-      break;
-    }
-
-    delayMicroseconds(200000);
-  }
-
-  // Parity controll (Odd)
-  if (ones % 2 == 0) {
-    debugPrintln(F("Parity error!"));
-    return -2;
-  }
-
-  debugPrint(F("✅ Received 5 Baud data: "));
-  debugPrintHex(data);
-  debugPrintln();
-  return data;
-}
