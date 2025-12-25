@@ -481,40 +481,52 @@ void send5baud(uint8_t data) {
 
 // Format - 7O1
 int read5baud() {
-  debugPrintln(F("✅ Reading 5 Baud data."));
-  unsigned long t0 = millis();
-  while (digitalRead(K_line_RX) == HIGH) {
-    if (millis() - t0 > 2000) return -1;
+  //debugPrintln(F("Waiting for 5-baud init..."));
+
+  // HIGH -> LOW (start bit decrease)
+  while (digitalRead(K_line_RX) == HIGH);
+  unsigned long tStart = micros();
+
+  // Measure the start-bit LOW duration
+  while (digitalRead(K_line_RX) == LOW);
+  unsigned long lowDuration = micros() - tStart;
+
+  // 5-baud controll
+  if (lowDuration < 150000 || lowDuration > 300000) {
+    //debugPrintln(F("Not 5-baud, ignored"));
+    return -1;
   }
 
+  debugPrint(F("5 Baud detected - "));
+  const unsigned long BIT_US = 200000;
   uint8_t bits[10];
+
+  while (micros() - tStart < (BIT_US / 2));
+
+  for (int i = 0; i < 10; i++) {
+    bits[i] = digitalRead(K_line_RX);
+    delayMicroseconds(BIT_US);
+  }
+
+  debugPrint(F("Bits: "));
+  for (int i = 0; i < 10; i++) {
+    debugPrint(bits[i]);
+  }
+
   uint8_t data = 0;
   int ones = 0;
-  delayMicroseconds(100000);
-
-  for (int i = 0; i < 10; i++) {  // Bits: 0=start, 1..7=data, 8=parity, 9=stop
-    bits[i] = digitalRead(K_line_RX) ? 1 : 0;
-
-    if (i >= 1 && i <= 7) {
-      data |= (bits[i] << (i - 1));  // Save data bits
-      if (bits[i]) ones++;
-    } else if (i == 8) {  // parity bit
-      if (bits[i]) ones++;
-    } else if (i == 9) {  // stop bit
-      break;
-    }
-
-    delayMicroseconds(200000);
+  for (int i = 1; i <= 7; i++) {
+    data |= (bits[i] << (i - 1));
+    if (bits[i]) ones++;
   }
+  if (bits[8]) ones++;
 
-  // Parity controll (Odd)
-  if (ones % 2 == 0) {
-    debugPrintln(F("Parity error!"));
-    return -2;
-  }
-
-  debugPrint(F("✅ Received 5 Baud data: "));
+  debugPrint(F(", DATA: 0x"));
   debugPrintHex(data);
-  debugPrintln();
+
+  if ((ones & 1) == 0) debugPrintln(F(", Parity ERROR (odd expected)"));
+  else debugPrintln(F(", Parity OK"));
+  //debugPrintln();
+
   return data;
 }
