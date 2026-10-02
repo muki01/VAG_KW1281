@@ -1,0 +1,67 @@
+name: 🚗 Vehicle report
+description: Tell us whether VAG KW1281 works with your car
+title: "[Vehicle] <make> <model> <year>"
+labels: ["vehicle-report"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Real-world test reports help everyone find out whether their car is supported. Thank you! 🙌
+  - type: input
+    id: vehicle
+    attributes:
+      label: Vehicle
+      placeholder: Make, model, year
+    validations:
+      required: true
+  - type: input
+    id: engine
+    attributes:
+      label: Engine / ECU
+      placeholder: e.g. 1.6 petrol, Bosch ME7.5
+  - type: input
+    id: module
+    attributes:
+      label: Control unit
+      placeholder: Module address and ECU part number (e.g. 0x01 engine, 4Z7907401B)
+  - type: dropdown
+    id: result
+    attributes:
+      label: Result
+      options:
+        - ✅ Works
+        - ⚠️ Partially works
+        - ❌ Does not connect
+    validations:
+      required: true
+  - type: dropdown
+    id: protocol
+    attributes:
+      label: Detected protocol
+      options:
+        - KW1281 at 9600 baud
+        - KW1281 at 10400 baud
+        - KW1281 at another baud rate
+        - No answer to the wake-up
+    validations:
+      required: true
+  - type: checkboxes
+    id: features
+    attributes:
+      label: Working features
+      options:
+        - label: Connection
+        - label: ECU identification
+        - label: Measuring groups
+        - label: Read fault codes
+        - label: Clear fault codes
+  - type: input
+    id: hardware
+    attributes:
+      label: Board and interface
+      placeholder: e.g. ESP32-S3 + L9637D
+  - type: textarea
+    id: notes
+    attributes:
+      label: Notes
+      description: Anything else worth knowing (quirks, timing tweaks, logs).

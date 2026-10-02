@@ -1,0 +1,11 @@
+blank_issues_enabled: true
+contact_links:
+  - name: 📚 KW1281 as a library
+    url: https://github.com/muki01/OBD2_KLine_Library
+    about: The OBD2 K-Line Library supports KW1281 next to ISO 9141, KWP2000, DS2 and KW82.
+  - name: 🔧 Generic OBD-II over K-Line
+    url: https://github.com/muki01/OBD2_K-line_Reader
+    about: Looking for trouble codes and live data on any K-Line car? See the OBD2 K-Line Reader.
+  - name: 💼 Custom development
+    url: mailto:muksin.muksin04@gmail.com
+    about: Need a custom diagnostic tool, protocol or PCB? Get in touch.

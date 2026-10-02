@@ -1,0 +1,69 @@
+name: 🐛 Bug report
+description: Something isn't working as expected
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for taking the time to report a bug! Please fill in as much as you can. The debug output is the most helpful part.
+  - type: dropdown
+    id: sketch
+    attributes:
+      label: Sketch
+      options:
+        - VAG_KW1281
+        - Basic_Communication_Test
+        - Basic_KW1281_Simulator
+    validations:
+      required: true
+  - type: input
+    id: board
+    attributes:
+      label: Board
+      placeholder: e.g. ESP32-S3 DevKitC-1, Arduino Nano
+    validations:
+      required: true
+  - type: dropdown
+    id: interface
+    attributes:
+      label: K-Line interface
+      options:
+        - Transistor-based
+        - Comparator (LM393)
+        - L9637D
+        - MC33290
+        - Si9241
+        - SN65HVDA195
+        - Other / custom PCB
+    validations:
+      required: true
+  - type: input
+    id: vehicle
+    attributes:
+      label: Vehicle
+      placeholder: Make, model, year and engine
+  - type: input
+    id: module
+    attributes:
+      label: Control unit
+      placeholder: Module and ECU part number (e.g. engine, 4Z7907401B, Bosch EDC15VM+)
+  - type: textarea
+    id: description
+    attributes:
+      label: What happened?
+      description: What did you expect, and what happened instead?
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to reproduce
+      placeholder: |
+        1. ...
+        2. ...
+  - type: textarea
+    id: logs
+    attributes:
+      label: Debug output
+      description: Enable `DEBUG_Serial` and paste the log (the blocks sent and received). Remove your VIN if you prefer.
+      render: text
